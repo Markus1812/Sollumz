@@ -44,7 +44,7 @@ class Bounds(ElementTree, AbstractClass):
         self.ped_density = ValueProperty('PedDensity', 0)
         self.unk_flags = ValueProperty('UnkFlags', 0)
         self.poly_flags = ValueProperty('PolyFlags', 0)
-        self.unk_type = ValueProperty('UnkType', 0)
+        self.unk_type = ValueProperty('UnkType', 1)
 
 
 class BoundsComposite(Bounds):
