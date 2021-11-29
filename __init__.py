@@ -17,7 +17,7 @@ from . import auto_load
 
 
 bl_info = {
-    "name": "Sollumz",
+    "name": "Sollumz (HE)",
     "author": "Skylumz",
     "description": "This plugins allows you to import/export codewalker xml files.",
     "blender": (2, 92, 0),
