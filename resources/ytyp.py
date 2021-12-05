@@ -228,10 +228,33 @@ class ArchetypesListProperty(ListProperty):
 
 
 class CompositeEntityType(ElementTree):
-    tag_name = "compositeEntityTypes"
+    tag_name = "Item"
 
     def __init__(self):
         super().__init__()
+        self.name = TextProperty("Name")
+        self.lod_dist = ValueProperty("lodDist")
+        self.flags = ValueProperty("flags")
+        self.special_attribute = ValueProperty("specialAttribute")
+        self.bb_min = VectorProperty("bbMin")
+        self.bb_max = VectorProperty("bbMax")
+        self.bs_center = VectorProperty("bsCentre")
+        self.bs_radius = ValueProperty("bsRadius")
+        self.start_model = TextProperty("StartModel")
+        self.end_model = TextProperty("EndModel")
+        self.start_imap_file = TextProperty("StartImapFile")
+        self.end_imap_file = TextProperty("EndImapFile")
+        self.ptfx_assetname = TextProperty("PtFxAssetName")
+        # TODO
+        # self.animations = AnimationsListProperty()
+
+
+class CompositeEntityTypeListProperty(ListProperty):
+    list_type = CompositeEntityType
+    tag_name = "compositeEntityTypes"
+
+    def __init__(self, tag_name=None, value=None):
+        super().__init__(tag_name="compositeEntityTypes", value=value or [])
         self.item_type = AttributeProperty("itemType", "CCompositeEntityType")
 
 
@@ -245,4 +268,4 @@ class CMapTypes(ElementTree):
         self.name = TextProperty("name")
         # Investigate: Not used in any ytyp file in the game?
         # self.dependencies = DependenciesListProperty()
-        self.composite_entity_type = CompositeEntityType()
+        self.composite_entity_type = CompositeEntityTypeListProperty()
