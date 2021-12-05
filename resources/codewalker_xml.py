@@ -391,7 +391,7 @@ class ValueProperty(ElementProperty):
     @ staticmethod
     def from_xml(element: ET.Element):
         if not 'value' in element.attrib:
-            ValueError.read_value_error(element)
+            ValueProperty.read_value_error(element)
 
         return ValueProperty(element.tag, get_str_type(element.get('value')))
 
