@@ -117,6 +117,20 @@ class EntityPriorityLevel(str, Enum):
     PRI_OPTIONAL_LOW = "sollumz_pri_optional_low"
 
 
+class ArchetypeType(str, Enum):
+    BASE = "sollumz_archetype_base"
+    TIME = "sollumz_archetype_time"
+    MLO = "sollumz_archetype_mlo"
+
+
+class AssetType(str, Enum):
+    UNITIALIZED = "sollumz_asset_unintialized"
+    FRAGMENT = "sollumz_asset_fragment"
+    DRAWABLE = "sollumz_asset_drawable"
+    DRAWABLE_DICTIONARY = "sollumz_asset_drawable_dictionary"
+    ASSETLESS = "sollumz_asset_assetless"
+
+
 FRAGMENT_TYPES = [
     SollumType.FRAGMENT,
     SollumType.LOD,
@@ -250,6 +264,16 @@ SOLLUMZ_UI_NAMES = {
     LightType.POINT: 'Point',
     LightType.SPOT: 'Spot',
     LightType.CAPSULE: 'Capsule',
+
+    ArchetypeType.BASE: "Base",
+    ArchetypeType.TIME: "Time",
+    ArchetypeType.MLO: "MLO",
+
+    AssetType.UNITIALIZED: "Uninitialized",
+    AssetType.FRAGMENT: "Fragment",
+    AssetType.DRAWABLE: "Drawable",
+    AssetType.DRAWABLE_DICTIONARY: "Drawable Dictionary",
+    AssetType.ASSETLESS: "Assetless"
 }
 
 # Generate items from provided enums
