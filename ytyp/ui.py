@@ -2,7 +2,7 @@ import bpy
 
 from ..tools.meshhelper import get_children_recursive
 from ..sollumz_properties import ArchetypeType
-from .properties import Room, Portal, TimecycleModifier
+from .properties import RoomProperties, PortalProperties, TimecycleModifier
 from mathutils import Vector
 
 
@@ -371,7 +371,7 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
 
         if len(selected_archetype.rooms) > 0:
             selected_room = selected_archetype.rooms[context.scene.room_index]
-            for prop_name in Room.__annotations__:
+            for prop_name in RoomProperties.__annotations__:
                 layout.prop(selected_room, prop_name)
             layout.separator()
             layout.operator("sollumz.setroomboundsfromselection")
@@ -415,7 +415,7 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
         if len(selected_archetype.portals) > 0:
             selected_portal = selected_archetype.portals[context.scene.portal_index]
 
-            for prop_name in Portal.__annotations__:
+            for prop_name in PortalProperties.__annotations__:
                 layout.prop(selected_portal, prop_name)
 
 

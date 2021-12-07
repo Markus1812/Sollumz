@@ -2,7 +2,7 @@ import bpy
 from ..sollumz_properties import items_from_enums, ArchetypeType, AssetType
 
 
-class Room(bpy.types.PropertyGroup):
+class RoomProperties(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="Name")
     bb_min: bpy.props.FloatVectorProperty(name="Bounds Min", subtype="XYZ")
     bb_max: bpy.props.FloatVectorProperty(name="Bounds Max", subtype="XYZ")
@@ -17,7 +17,7 @@ class Room(bpy.types.PropertyGroup):
         name="Exterior Visibility Depth", default=-1)
 
 
-class Portal(bpy.types.PropertyGroup):
+class PortalProperties(bpy.types.PropertyGroup):
     corner1: bpy.props.FloatVectorProperty(name="Corner 1", subtype="XYZ")
     corner2: bpy.props.FloatVectorProperty(name="Corner 2", subtype="XYZ")
     corner3: bpy.props.FloatVectorProperty(name="Corner 3", subtype="XYZ")
@@ -57,8 +57,9 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     time_flags: bpy.props.IntProperty(name="Time Flags")
     # Mlo archetype
     mlo_flags: bpy.props.IntProperty(name="MLO Flags")
-    rooms: bpy.props.CollectionProperty(type=Room, name="Rooms")
-    portals: bpy.props.CollectionProperty(type=Portal, name="Portals")
+    rooms: bpy.props.CollectionProperty(type=RoomProperties, name="Rooms")
+    portals: bpy.props.CollectionProperty(
+        type=PortalProperties, name="Portals")
     timecycle_modifiers: bpy.props.CollectionProperty(
         type=TimecycleModifier, name="Timecycle Modifiers")
 
