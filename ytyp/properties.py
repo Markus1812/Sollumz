@@ -74,6 +74,10 @@ def register():
     bpy.types.Scene.portal_index = bpy.props.IntProperty(name="Portal Index")
     bpy.types.Scene.tcm_index = bpy.props.IntProperty(
         name="Timecycle Modifier Index")
+    bpy.types.Scene.show_room_gizmo = bpy.props.BoolProperty(
+        name="Show Room Gizmo")
+    bpy.types.Scene.show_portal_gizmo = bpy.props.BoolProperty(
+        name="Show Portal Gizmo")
 
 
 def unregister():
@@ -82,3 +86,5 @@ def unregister():
     del bpy.types.Scene.room_index
     del bpy.types.Scene.portal_index
     del bpy.types.Scene.tcm_index
+    del bpy.types.Scene.show_room_gizmo
+    del bpy.types.Scene.show_portal_gizmo

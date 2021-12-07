@@ -1,6 +1,21 @@
 import bpy
-from ..sollumz_properties import SollumType, ArchetypeType
+
+from ..tools.meshhelper import get_children_recursive
+from ..sollumz_properties import ArchetypeType
 from .properties import Room, Portal, TimecycleModifier
+from mathutils import Vector
+
+
+def can_draw_gizmos(context):
+    num_ytyps = len(context.scene.ytyps)
+    if num_ytyps > 0 and context.scene.ytyp_index < num_ytyps:
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        num_archtypes = len(selected_ytyp.archetypes)
+        if num_archtypes > 0 and context.scene.archetype_index < num_archtypes:
+            selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+            num_rooms = len(selected_archetype.rooms)
+            return selected_archetype.asset and selected_archetype.type == ArchetypeType.MLO and (context.active_object in get_children_recursive(selected_archetype.asset) or context.active_object == selected_archetype.asset)
+    return False
 
 
 class SOLLUMZ_UL_YTYP_LIST(bpy.types.UIList):
@@ -9,7 +24,6 @@ class SOLLUMZ_UL_YTYP_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        # If the object is selected
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=item.name, icon="PRESET")
@@ -45,7 +59,6 @@ class SOLLUMZ_UL_ARCHETYPE_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        # If the object is selected
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=item.name, icon="OBJECT_DATA")
@@ -86,7 +99,6 @@ class SOLLUMZ_UL_ROOM_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        # If the object is selected
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=item.name, icon="CUBE")
@@ -102,7 +114,6 @@ class SOLLUMZ_UL_PORTAL_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        # If the object is selected
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=item.name, icon="OUTLINER_OB_LIGHTPROBE")
@@ -118,7 +129,6 @@ class SOLLUMZ_UL_TIMECYCLE_MODIFIER_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        # If the object is selected
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=item.name, icon="TIME")
@@ -166,6 +176,167 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
             layout.separator()
 
 
+class RoomGizmo(bpy.types.Gizmo):
+    bl_idname = "OBJECT_GT_room"
+
+    def __init__(self):
+        super().__init__()
+        self.linked_room = None
+
+    @staticmethod
+    def get_verts(bbmin, bbmax):
+        return [
+            bbmin,
+            Vector((bbmin.x, bbmin.y, bbmax.z)),
+
+            bbmin,
+            Vector((bbmax.x, bbmin.y, bbmin.z)),
+
+            bbmin,
+            Vector((bbmin.x, bbmax.y, bbmin.z)),
+
+            Vector((bbmax.x, bbmin.y, bbmax.z)),
+            Vector((bbmax.x, bbmin.y, bbmin.z)),
+
+            Vector((bbmin.x, bbmin.y, bbmax.z)),
+            Vector((bbmin.x, bbmax.y, bbmax.z)),
+
+            Vector((bbmin.x, bbmax.y, bbmin.z)),
+            Vector((bbmin.x, bbmax.y, bbmax.z)),
+
+            Vector((bbmax.x, bbmin.y, bbmax.z)),
+            Vector((bbmax.x, bbmin.y, bbmax.z)),
+
+            Vector((bbmax.x, bbmin.y, bbmax.z)),
+            Vector((bbmin.x, bbmin.y, bbmax.z)),
+
+            Vector((bbmax.x, bbmin.y, bbmin.z)),
+            Vector((bbmax.x, bbmax.y, bbmin.z)),
+
+            Vector((bbmin.x, bbmax.y, bbmin.z)),
+            Vector((bbmax.x, bbmax.y, bbmin.z)),
+
+            Vector((bbmax.x, bbmin.y, bbmax.z)),
+            bbmax,
+
+            Vector((bbmin.x, bbmax.y, bbmax.z)),
+            bbmax,
+
+            Vector((bbmax.x, bbmax.y, bbmin.z)),
+            bbmax
+        ]
+
+    def draw(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_room = selected_archetype.rooms[context.scene.room_index]
+        room = self.linked_room
+
+        self.color = 0.31, 0.38, 1
+        self.alpha = 0.7
+        self.use_draw_scale = False
+
+        if room == selected_room:
+            self.color = self.color * 2
+            self.alpha = 0.9
+
+        asset = selected_archetype.asset
+        if asset and room:
+            self.custom_shape = self.new_custom_shape(
+                "LINES", RoomGizmo.get_verts(room.bb_min, room.bb_max))
+            self.draw_custom_shape(
+                self.custom_shape, matrix=asset.matrix_world)
+
+
+class RoomGizmoGroup(bpy.types.GizmoGroup):
+    bl_idname = "OBJECT_GGT_Room"
+    bl_label = "MLO Room"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D', 'PERSISTENT'}
+
+    @classmethod
+    def poll(cls, context):
+        return can_draw_gizmos(context)
+
+    def setup(self, context):
+        pass
+
+    def refresh(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        self.gizmos.clear()
+        for room in selected_archetype.rooms:
+            gz = self.gizmos.new(RoomGizmo.bl_idname)
+            gz.linked_room = room
+
+
+class PortalGizmo(bpy.types.Gizmo):
+    bl_idname = "OBJECT_GT_portal"
+
+    def __init__(self):
+        super().__init__()
+        self.linked_portal = None
+
+    @staticmethod
+    def get_verts(corners):
+        return [
+            corners[0],
+            corners[1],
+            corners[2],
+
+            corners[3],
+            corners[2],
+            corners[1],
+        ]
+
+    def draw(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_portal = selected_archetype.portals[context.scene.portal_index]
+        portal = self.linked_portal
+        asset = selected_archetype.asset
+
+        self.color = 0.45, 0.98, 0.55
+        self.alpha = 0.5
+
+        if selected_portal == portal:
+            self.color = self.color * 1.5
+            self.alpha = 0.7
+
+        if portal and asset:
+            corners = [portal.corner1, portal.corner2,
+                       portal.corner3, portal.corner4]
+            self.custom_shape = self.new_custom_shape(
+                "TRIS", PortalGizmo.get_verts(corners))
+            self.draw_custom_shape(
+                self.custom_shape, matrix=asset.matrix_world)
+
+
+class PortalGizmoGroup(bpy.types.GizmoGroup):
+    bl_idname = "OBJECT_GGT_Portal"
+    bl_label = "MLO Portal"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'WINDOW'
+    bl_options = {'3D', 'PERSISTENT', 'SELECT'}
+
+    @classmethod
+    def poll(cls, context):
+        return can_draw_gizmos(context)
+
+    def setup(self, context):
+        pass
+
+    def refresh(self, context):
+        self.gizmos.clear()
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+
+        for portal in selected_archetype.portals:
+            gz = self.gizmos.new(PortalGizmo.bl_idname)
+            gz.linked_portal = portal
+
+
 class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
     bl_label = "Rooms"
     bl_idname = "SOLLUMZ_PT_ROOM_PANEL"
@@ -193,12 +364,17 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         row = layout.row()
         row.operator("sollumz.createroom")
         row.operator("sollumz.deleteroom")
+        row = layout.row()
+        row.use_property_split = False
+        row.prop(context.scene, "show_room_gizmo")
         layout.separator()
 
         if len(selected_archetype.rooms) > 0:
             selected_room = selected_archetype.rooms[context.scene.room_index]
             for prop_name in Room.__annotations__:
                 layout.prop(selected_room, prop_name)
+            layout.separator()
+            layout.operator("sollumz.setroomboundsfromselection")
 
 
 class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
@@ -228,6 +404,11 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
         row = layout.row()
         row.operator("sollumz.createportal")
         row.operator("sollumz.deleteportal")
+        row = layout.row()
+        row.operator("sollumz.createportalfromselection")
+        row = layout.row()
+        row.use_property_split = False
+        row.prop(context.scene, "show_portal_gizmo")
 
         layout.separator()
 

@@ -1,6 +1,8 @@
 import bpy
 from ..sollumz_helper import SOLLUMZ_OT_base
 from ..sollumz_properties import SOLLUMZ_UI_NAMES, ArchetypeType
+from ..tools.blenderhelper import get_selected_vertices
+from ..tools.utils import get_min_vector_list, get_max_vector_list
 
 
 class SOLLUMZ_OT_create_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -10,7 +12,9 @@ class SOLLUMZ_OT_create_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         item = context.scene.ytyps.add()
-        item.name = f"YTYP.{len(context.scene.ytyps)}"
+        index = len(context.scene.ytyps)
+        item.name = f"YTYP.{index}"
+        context.scene.ytyp_index = index - 1
 
 
 class SOLLUMZ_OT_delete_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -35,7 +39,9 @@ class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         item = selected_ytyp.archetypes.add()
-        item.name = f"{SOLLUMZ_UI_NAMES[ArchetypeType.BASE]}.{len(selected_ytyp.archetypes)}"
+        index = len(selected_ytyp.archetypes)
+        item.name = f"{SOLLUMZ_UI_NAMES[ArchetypeType.BASE]}.{index}"
+        context.scene.archetype_index = index - 1
 
 
 class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -70,7 +76,41 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
         item = selected_archetype.rooms.add()
-        item.name = f"Room.{len(selected_archetype.rooms)}"
+        index = len(selected_archetype.rooms)
+        item.name = f"Room.{index}"
+        context.scene.room_index = index - 1
+
+
+class SOLLUMZ_OT_set_bounds_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Set room bounds from selection (must be in edit mode)"""
+    bl_idname = "sollumz.setroomboundsfromselection"
+    bl_label = "Set Bounds From Selection"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.mode == "EDIT"
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_room = selected_archetype.rooms[context.scene.room_index]
+        selected_verts = []
+        for obj in context.objects_in_mode:
+            selected_verts.extend(get_selected_vertices(obj))
+        if not len(selected_verts) > 1:
+            self.message("You must select at least 2 vertices!")
+            return False
+        if not selected_archetype.asset:
+            self.message("You must set an asset for the archetype.")
+            return False
+
+        pos = selected_archetype.asset.location
+
+        selected_room.bb_max = get_max_vector_list(
+            selected_verts) - pos
+        selected_room.bb_min = get_min_vector_list(
+            selected_verts) - pos
+        return True
 
 
 class SOLLUMZ_OT_delete_room(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -108,7 +148,50 @@ class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
         item = selected_archetype.portals.add()
-        item.name = f"Portal.{len(selected_archetype.rooms)}"
+        index = len(selected_archetype.portals)
+        item.name = f"Portal.{index}"
+        context.scene.portal_index = index - 1
+
+
+class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Create a portal from selected verts"""
+    bl_idname = "sollumz.createportalfromselection"
+    bl_label = "Create Portal From Verts"
+
+    @classmethod
+    def poll(cls, context):
+        return context.active_object and context.active_object.mode == "EDIT"
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_verts = []
+
+        for obj in context.objects_in_mode:
+            selected_verts.extend(get_selected_vertices(obj))
+
+        if len(selected_verts) != 4:
+            self.message("You must select exactly 4 vertices.")
+            return False
+
+        if not selected_archetype.asset:
+            self.message("You must select an asset.")
+            return False
+
+        corners = selected_verts
+        corners.sort()
+
+        pos = selected_archetype.asset.location
+        new_portal = selected_archetype.portals.add()
+        index = len(selected_archetype.portals)
+        new_portal.name = f"Portal.{index}"
+        context.scene.portal_index = index - 1
+        new_portal.corner1 = corners[0] - pos
+        new_portal.corner2 = corners[1] - pos
+        new_portal.corner3 = corners[2] - pos
+        new_portal.corner4 = corners[3] - pos
+
+        return True
 
 
 class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -146,7 +229,7 @@ class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
         item = selected_archetype.timecycle_modifiers.add()
-        item.name = f"Timecycle Modifier.{len(selected_archetype.rooms)}"
+        item.name = f"Timecycle Modifier.{len(selected_archetype.timecycle_modifiers)}"
 
 
 class SOLLUMZ_OT_delete_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
