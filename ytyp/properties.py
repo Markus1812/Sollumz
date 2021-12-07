@@ -22,6 +22,12 @@ class Portal(bpy.types.PropertyGroup):
     corner2: bpy.props.FloatVectorProperty(name="Corner 2", subtype="XYZ")
     corner3: bpy.props.FloatVectorProperty(name="Corner 3", subtype="XYZ")
     corner4: bpy.props.FloatVectorProperty(name="Corner 4", subtype="XYZ")
+    room_from: bpy.props.IntProperty(name="Room From")
+    room_to: bpy.props.IntProperty(name="Room To")
+    flags: bpy.props.IntProperty(name="Flags")
+    mirror_priority: bpy.props.IntProperty(name="Mirror Priority")
+    opacity: bpy.props.IntProperty(name="Opacity")
+    audio_occlusion: bpy.props.IntProperty(name="Audio Occlusion")
 
 
 class TimecycleModifier(bpy.types.PropertyGroup):
