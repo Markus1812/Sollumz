@@ -43,7 +43,6 @@ class SOLLUMZ_PT_YTYP_TOOL_PANEL(bpy.types.Panel):
 
     def draw(self, context):
         layout = self.layout
-        # layout.use_property_split = True
         layout.label(text="YTYPS")
         layout.template_list(
             SOLLUMZ_UL_YTYP_LIST.bl_idname, "", context.scene, "ytyps", context.scene, "ytyp_index"
@@ -51,6 +50,8 @@ class SOLLUMZ_PT_YTYP_TOOL_PANEL(bpy.types.Panel):
         row = layout.row()
         row.operator("sollumz.createytyp")
         row.operator("sollumz.deleteytyp")
+        row = layout.row()
+        row.operator("sollumz.exportytyp")
 
 
 class SOLLUMZ_UL_ARCHETYPE_LIST(bpy.types.UIList):

@@ -42,8 +42,11 @@ class TimecycleModifier(bpy.types.PropertyGroup):
 class ArchetypeProperties(bpy.types.PropertyGroup):
     type: bpy.props.EnumProperty(
         items=items_from_enums(ArchetypeType), name="Type")
+    lod_dist: bpy.props.FloatProperty(name="Lod Distance", default=100)
     flags: bpy.props.IntProperty(name="Flags")
     special_attribute: bpy.props.IntProperty(name="Special Attribute")
+    hd_texture_dist: bpy.props.FloatProperty(
+        name="HD Texture Distance", default=100)
     name: bpy.props.StringProperty(name="Name")
     texture_dictionary: bpy.props.StringProperty(name="Texture Dictionary")
     clip_dictionary: bpy.props.StringProperty(name="Clip Dictionary")

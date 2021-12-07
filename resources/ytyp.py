@@ -1,6 +1,5 @@
-import os
 from .codewalker_xml import *
-from .ymap import EntityListProperty, EntityItem, ExtensionsListProperty
+from .ymap import EntityListProperty, ExtensionsListProperty
 
 
 class YTYP:
@@ -61,7 +60,7 @@ class Corner(ElementProperty):
             return None
 
         elem = ET.Element(self.tag_name)
-        elem.text = ",".join(self.value)
+        elem.text = ",".join([str(val) for val in self.value])
         return elem
 
 
