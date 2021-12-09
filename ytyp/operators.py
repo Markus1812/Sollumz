@@ -363,7 +363,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
             return False
 
 
-class SOLLUMZ_OT_export_ymap(SOLLUMZ_OT_base, bpy.types.Operator):
+class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
     """Export the selected YTYP."""
     bl_idname = "sollumz.exportytyp"
     bl_label = "Export ytyp.xml"
