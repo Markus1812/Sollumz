@@ -11,9 +11,8 @@ def can_draw_gizmos(context):
     if num_ytyps > 0 and context.scene.ytyp_index < num_ytyps:
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         num_archtypes = len(selected_ytyp.archetypes)
-        if num_archtypes > 0 and context.scene.archetype_index < num_archtypes:
-            selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-            num_rooms = len(selected_archetype.rooms)
+        if num_archtypes > 0 and selected_ytyp.archetype_index < num_archtypes:
+            selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
             return selected_archetype.asset and selected_archetype.type == ArchetypeType.MLO and (context.active_object in get_children_recursive(selected_archetype.asset) or context.active_object == selected_archetype.asset)
     return False
 
@@ -51,6 +50,7 @@ class SOLLUMZ_PT_YTYP_TOOL_PANEL(bpy.types.Panel):
         row.operator("sollumz.createytyp")
         row.operator("sollumz.deleteytyp")
         row = layout.row()
+        row.operator("sollumz.importytyp")
         row.operator("sollumz.exportytyp")
 
 
@@ -88,7 +88,7 @@ class SOLLUMZ_PT_YTYP_PANEL(bpy.types.Panel):
         layout.prop(selected_ytyp, "name")
         layout.label(text="Archetypes:")
         layout.template_list(SOLLUMZ_UL_ARCHETYPE_LIST.bl_idname, "",
-                             selected_ytyp, "archetypes", context.scene, "archetype_index")
+                             selected_ytyp, "archetypes", selected_ytyp, "archetype_index")
         row = layout.row()
         row.operator("sollumz.createarchetype")
         row.operator("sollumz.deletearchetype")
@@ -115,13 +115,17 @@ class SOLLUMZ_UL_PORTAL_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        portal_index = list(selected_archetype.portals).index(item)
+        name = f"{portal_index}: {item.room_from} to {item.room_to}"
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
-            row.label(text=item.name, icon="OUTLINER_OB_LIGHTPROBE")
+            row.label(text=name, icon="OUTLINER_OB_LIGHTPROBE")
         elif self.layout_type in {"GRID"}:
             layout.alignment = "CENTER"
             layout.prop(item, "name",
-                        text=item.name, emboss=False, icon="OUTLINER_OB_LIGHTPROBE")
+                        text=name, emboss=False, icon="OUTLINER_OB_LIGHTPROBE")
 
 
 class SOLLUMZ_UL_TIMECYCLE_MODIFIER_LIST(bpy.types.UIList):
@@ -159,7 +163,7 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         layout.prop(selected_archetype, "type")
         layout.prop(selected_archetype, "name")
         layout.prop(selected_archetype, "flags")
@@ -229,8 +233,8 @@ class RoomGizmo(bpy.types.Gizmo):
 
     def draw(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_room = selected_archetype.rooms[context.scene.room_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_room = selected_archetype.rooms[selected_archetype.room_index]
         room = self.linked_room
 
         self.color = 0.31, 0.38, 1
@@ -258,14 +262,18 @@ class RoomGizmoGroup(bpy.types.GizmoGroup):
 
     @classmethod
     def poll(cls, context):
-        return can_draw_gizmos(context)
+        if can_draw_gizmos(context):
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+            return selected_archetype.room_index < len(selected_archetype.rooms)
+        return False
 
     def setup(self, context):
         pass
 
-    def refresh(self, context):
+    def draw_prepare(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         self.gizmos.clear()
         for room in selected_archetype.rooms:
             gz = self.gizmos.new(RoomGizmo.bl_idname)
@@ -293,8 +301,8 @@ class PortalGizmo(bpy.types.Gizmo):
 
     def draw(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_portal = selected_archetype.portals[context.scene.portal_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
         portal = self.linked_portal
         asset = selected_archetype.asset
 
@@ -323,15 +331,19 @@ class PortalGizmoGroup(bpy.types.GizmoGroup):
 
     @classmethod
     def poll(cls, context):
-        return can_draw_gizmos(context)
+        if can_draw_gizmos(context):
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+            return selected_archetype.portal_index < len(selected_archetype.portals)
+        return False
 
     def setup(self, context):
         pass
 
-    def refresh(self, context):
+    def draw_prepare(self, context):
         self.gizmos.clear()
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         for portal in selected_archetype.portals:
             gz = self.gizmos.new(PortalGizmo.bl_idname)
@@ -350,7 +362,7 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         return selected_archetype.type == ArchetypeType.MLO
 
@@ -358,10 +370,10 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         layout.template_list(SOLLUMZ_UL_ROOM_LIST.bl_idname, "",
-                             selected_archetype, "rooms", context.scene, "room_index")
+                             selected_archetype, "rooms", selected_archetype, "room_index")
         row = layout.row()
         row.operator("sollumz.createroom")
         row.operator("sollumz.deleteroom")
@@ -371,7 +383,7 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         layout.separator()
 
         if len(selected_archetype.rooms) > 0:
-            selected_room = selected_archetype.rooms[context.scene.room_index]
+            selected_room = selected_archetype.rooms[selected_archetype.room_index]
             for prop_name in RoomProperties.__annotations__:
                 layout.prop(selected_room, prop_name)
             layout.separator()
@@ -390,18 +402,20 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        if selected_ytyp.archetype_index < len(selected_ytyp.archetypes):
+            selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
-        return selected_archetype.type == ArchetypeType.MLO
+            return selected_archetype.type == ArchetypeType.MLO
+        return False
 
     def draw(self, context):
         layout = self.layout
         layout.use_property_split = True
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         layout.template_list(SOLLUMZ_UL_PORTAL_LIST.bl_idname, "",
-                             selected_archetype, "portals", context.scene, "portal_index")
+                             selected_archetype, "portals", selected_archetype, "portal_index")
         row = layout.row()
         row.operator("sollumz.createportal")
         row.operator("sollumz.deleteportal")
@@ -414,7 +428,7 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
         layout.separator()
 
         if len(selected_archetype.portals) > 0:
-            selected_portal = selected_archetype.portals[context.scene.portal_index]
+            selected_portal = selected_archetype.portals[selected_archetype.portal_index]
 
             for prop_name in PortalProperties.__annotations__:
                 layout.prop(selected_portal, prop_name)
@@ -432,7 +446,7 @@ class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
     @classmethod
     def poll(cls, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         return selected_archetype.type == ArchetypeType.MLO
 
@@ -440,10 +454,10 @@ class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
         layout = self.layout
         layout.use_property_split = True
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
 
         layout.template_list(SOLLUMZ_UL_TIMECYCLE_MODIFIER_LIST.bl_idname, "",
-                             selected_archetype, "timecycle_modifiers", context.scene, "tcm_index")
+                             selected_archetype, "timecycle_modifiers", selected_archetype, "tcm_index")
         row = layout.row()
         row.operator("sollumz.createtimecyclemodifier")
         row.operator("sollumz.deletetimecyclemodifier")
@@ -451,6 +465,6 @@ class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
         layout.separator()
 
         if len(selected_archetype.timecycle_modifiers) > 0:
-            selected_tcm = selected_archetype.timecycle_modifiers[context.scene.tcm_index]
+            selected_tcm = selected_archetype.timecycle_modifiers[selected_archetype.tcm_index]
             for prop_name in TimecycleModifier.__annotations__:
                 layout.prop(selected_tcm, prop_name)

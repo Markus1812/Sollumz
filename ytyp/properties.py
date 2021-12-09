@@ -51,8 +51,8 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     texture_dictionary: bpy.props.StringProperty(name="Texture Dictionary")
     clip_dictionary: bpy.props.StringProperty(name="Clip Dictionary")
     drawable_dictionary: bpy.props.StringProperty(name="Drawable Dictionary")
-    physics_dictionary: bpy.props.PointerProperty(
-        name="Physics Dictionary (Collision)", type=bpy.types.Object)
+    physics_dictionary: bpy.props.StringProperty(
+        name="Physics Dictionary")
     asset_type: bpy.props.EnumProperty(
         items=items_from_enums(AssetType), name="Asset Type")
     asset: bpy.props.PointerProperty(name="Asset", type=bpy.types.Object)
@@ -65,6 +65,13 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
         type=PortalProperties, name="Portals")
     timecycle_modifiers: bpy.props.CollectionProperty(
         type=TimecycleModifier, name="Timecycle Modifiers")
+    # Selected room index
+    room_index: bpy.props.IntProperty(name="Room Index")
+    # Selected portal index
+    portal_index: bpy.props.IntProperty(name="Portal Index")
+    # Selected timecycle modifier index
+    tcm_index: bpy.props.IntProperty(
+        name="Timecycle Modifier Index")
 
 
 class CMapTypesProperties(bpy.types.PropertyGroup):
@@ -72,18 +79,15 @@ class CMapTypesProperties(bpy.types.PropertyGroup):
     # extensions
     archetypes: bpy.props.CollectionProperty(
         type=ArchetypeProperties, name="Archetypes")
+    # Selected archetype index
+    archetype_index: bpy.props.IntProperty(
+        name="Archetype Index")
 
 
 def register():
     bpy.types.Scene.ytyps = bpy.props.CollectionProperty(
         type=CMapTypesProperties, name="YTYPs")
     bpy.types.Scene.ytyp_index = bpy.props.IntProperty(name="YTYP Index")
-    bpy.types.Scene.archetype_index = bpy.props.IntProperty(
-        name="Archetype Index")
-    bpy.types.Scene.room_index = bpy.props.IntProperty(name="Room Index")
-    bpy.types.Scene.portal_index = bpy.props.IntProperty(name="Portal Index")
-    bpy.types.Scene.tcm_index = bpy.props.IntProperty(
-        name="Timecycle Modifier Index")
     bpy.types.Scene.show_room_gizmo = bpy.props.BoolProperty(
         name="Show Room Gizmo")
     bpy.types.Scene.show_portal_gizmo = bpy.props.BoolProperty(
@@ -93,8 +97,5 @@ def register():
 def unregister():
     del bpy.types.Scene.ytyps
     del bpy.types.Scene.ytyp_index
-    del bpy.types.Scene.room_index
-    del bpy.types.Scene.portal_index
-    del bpy.types.Scene.tcm_index
     del bpy.types.Scene.show_room_gizmo
     del bpy.types.Scene.show_portal_gizmo

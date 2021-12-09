@@ -110,7 +110,7 @@ class Portal(ElementTree):
         self.room_to = ValueProperty("roomTo")
         self.flags = ValueProperty("flags")
         self.mirror_priority = ValueProperty("mirrorPriority")
-        self.opactity = ValueProperty("opacity")
+        self.opacity = ValueProperty("opacity")
         self.audio_occlusion = ValueProperty("audioOcclusion")
         self.corners = CornersListProperty()
         self.attached_objects = AttachedObjectsBuffer()
@@ -202,7 +202,7 @@ class MloArchetype(BaseArchetype):
         self.rooms = RoomsListProperty()
         self.portals = PortalsListProperty()
         self.entity_sets = EntitySetsListProperty()
-        self.time_cycle_modifiers = TimeCycleModifiersListProperty()
+        self.timecycle_modifiers = TimeCycleModifiersListProperty()
 
 
 class ArchetypesListProperty(ListProperty):

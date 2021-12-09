@@ -7,6 +7,8 @@ from ..tools.utils import get_min_vector_list, get_max_vector_list
 from ..resources.ytyp import *
 from ..resources.ymap import *
 from .properties import *
+from bpy_extras.io_utils import ImportHelper
+
 import os
 import traceback
 
@@ -47,7 +49,7 @@ class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
         item = selected_ytyp.archetypes.add()
         index = len(selected_ytyp.archetypes)
         item.name = f"{SOLLUMZ_UI_NAMES[ArchetypeType.BASE]}.{index}"
-        context.scene.archetype_index = index - 1
+        selected_ytyp.archetype_index = index - 1
 
 
 class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -61,9 +63,9 @@ class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_ytyp.archetypes.remove(context.scene.archetype_index)
-        context.scene.archetype_index = max(
-            context.scene.archetype_index - 1, 0)
+        selected_ytyp.archetypes.remove(selected_ytyp.archetype_index)
+        selected_ytyp.archetype_index = max(
+            selected_ytyp.archetype_index - 1, 0)
 
 
 class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -80,11 +82,11 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         item = selected_archetype.rooms.add()
         index = len(selected_archetype.rooms)
         item.name = f"Room.{index}"
-        context.scene.room_index = index - 1
+        selected_archetype.room_index = index - 1
 
 
 class SOLLUMZ_OT_set_bounds_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -98,8 +100,8 @@ class SOLLUMZ_OT_set_bounds_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_room = selected_archetype.rooms[context.scene.room_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_room = selected_archetype.rooms[selected_archetype.room_index]
         selected_verts = []
         for obj in context.objects_in_mode:
             selected_verts.extend(get_selected_vertices(obj))
@@ -133,9 +135,10 @@ class SOLLUMZ_OT_delete_room(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_archetype.rooms.remove(context.scene.room_index)
-        context.scene.room_index = max(context.scene.room_index - 1, 0)
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype.rooms.remove(selected_archetype.room_index)
+        selected_archetype.room_index = max(
+            selected_archetype.room_index - 1, 0)
 
 
 class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -152,11 +155,10 @@ class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        item = selected_archetype.portals.add()
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype.portals.add()
         index = len(selected_archetype.portals)
-        item.name = f"Portal.{index}"
-        context.scene.portal_index = index - 1
+        selected_archetype.portal_index = index - 1
 
 
 class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -170,7 +172,7 @@ class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operato
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         selected_verts = []
 
         for obj in context.objects_in_mode:
@@ -190,8 +192,7 @@ class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operato
         pos = selected_archetype.asset.location
         new_portal = selected_archetype.portals.add()
         index = len(selected_archetype.portals)
-        new_portal.name = f"Portal.{index}"
-        context.scene.portal_index = index - 1
+        selected_archetype.portal_index = index - 1
         new_portal.corner1 = corners[0] - pos
         new_portal.corner2 = corners[1] - pos
         new_portal.corner3 = corners[2] - pos
@@ -214,9 +215,10 @@ class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_archetype.portals.remove(context.scene.portal_index)
-        context.scene.portal_index = max(context.scene.portal_index - 1, 0)
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype.portals.remove(selected_archetype.portal_index)
+        selected_archetype.portal_index = max(
+            selected_archetype.portal_index - 1, 0)
 
 
 class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -233,7 +235,7 @@ class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         item = selected_archetype.timecycle_modifiers.add()
         item.name = f"Timecycle Modifier.{len(selected_archetype.timecycle_modifiers)}"
 
@@ -252,13 +254,117 @@ class SOLLUMZ_OT_delete_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[context.scene.archetype_index]
-        selected_archetype.timecycle_modifiers.remove(context.scene.tcm_index)
-        context.scene.tcm_index = max(context.scene.tcm_index - 1, 0)
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype.timecycle_modifiers.remove(
+            selected_archetype.tcm_index)
+        selected_archetype.tcm_index = max(selected_archetype.tcm_index - 1, 0)
+
+
+class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
+    """Import a ytyp.xml"""
+    bl_idname = "sollumz.importytyp"
+    bl_label = "Import ytyp.xml"
+    bl_action = "Import a YTYP"
+
+    filename_ext = ".ytyp.xml"
+
+    filter_glob: bpy.props.StringProperty(
+        default="*.ytyp.xml",
+        options={'HIDDEN'},
+        maxlen=255,
+    )
+
+    def run(self, context):
+        try:
+            ytyp_xml = YTYP.from_xml_file(self.filepath)
+            ytyp = context.scene.ytyps.add()
+            ytyp.name = ytyp_xml.name
+            for arch_xml in ytyp_xml.archetypes:
+                arch = ytyp.archetypes.add()
+                arch.name = arch_xml.name
+                arch.flags = arch_xml.flags
+                arch.special_attribute = arch_xml.special_attribute
+                arch.hd_texture_dist = arch_xml.hd_texture_dist
+                arch.texture_dictionary = arch_xml.texture_dictionary
+                arch.clip_dictionary = arch_xml.clip_dictionary
+                arch.drawable_dictionary = arch_xml.drawable_dictionary
+                arch.physics_dictionary = arch_xml.physics_dictionary
+                arch.bb_min = arch_xml.bb_min
+                arch.bb_max = arch_xml.bb_max
+                arch.bs_center = arch_xml.bs_center
+                arch.bs_radius = arch_xml.bs_radius
+
+                if arch_xml.type == "CBaseArchetypeDef":
+                    arch.type = ArchetypeType.BASE
+                elif arch_xml.type == "CTimeArchetypeDef":
+                    arch.type = ArchetypeType.TIME
+                    arch.time_flags = arch_xml.time_flags
+                elif arch_xml.type == "CMloArchetypeDef":
+                    arch.type = ArchetypeType.MLO
+                    arch.mlo_flags = arch_xml.mlo_flags
+                    for room_xml in arch_xml.rooms:
+                        room = arch.rooms.add()
+                        room.name = room_xml.name
+                        room.bb_min = room_xml.bb_min
+                        room.bb_max = room_xml.bb_max
+                        room.blend = room_xml.blend
+                        room.timecycle = room_xml.timecycle_name
+                        room.secondary_timecycle = room_xml.secondary_timecycle_name
+                        room.flags = room_xml.flags
+                        room.floor_id = room_xml.floor_id
+                        room.exterior_visibility_depth = room_xml.exterior_visibility_depth
+                    for portal_xml in arch_xml.portals:
+                        portal = arch.portals.add()
+                        for index, corner in enumerate(portal_xml.corners):
+                            portal[f"corner{index + 1}"] = [
+                                float(val) for val in corner.value]
+                        portal.room_from = portal_xml.room_from
+                        portal.room_to = portal_xml.room_to
+                        portal.flags = portal_xml.flags
+                        portal.mirror_priority = portal_xml.mirror_priority
+                        portal.opacity = portal_xml.opacity
+                        portal.audio_occlusion = portal_xml.audio_occlusion
+                    for tcm_xml in arch_xml.timecycle_modifiers:
+                        tcm = arch.timecycle_modifiers.add()
+                        tcm.name = tcm_xml.name
+                        tcm.sphere = tcm_xml.sphere
+                        tcm.percentage = tcm_xml.percentage
+                        tcm.range = tcm_xml.range
+                        tcm.start_hour = tcm_xml.start_hour
+                        tcm.end_hour = tcm_xml.end_hour
+
+                # Find asset in scene
+                asset = None
+                for obj in context.collection.all_objects:
+                    if obj.name == arch_xml.asset_name:
+                        asset = obj
+                        break
+
+                if asset:
+                    arch.asset = asset
+                else:
+                    self.message(
+                        f"Asset '{arch_xml.asset_name}' in ytyp '{ytyp_xml.name}'' not found in scene. Please import the asset and link it.")
+
+                if arch_xml.asset_type == "ASSET_TYPE_UNINITIALIZED":
+                    arch.asset_type = AssetType.UNITIALIZED
+                elif arch_xml.asset_type == "ASSET_TYPE_FRAGMENT":
+                    arch.asset_type = AssetType.FRAGMENT
+                elif arch_xml.asset_type == "ASSET_TYPE_DRAWABLE":
+                    arch.asset_type = AssetType.DRAWABLE
+                elif arch_xml.asset_type == "ASSET_TYPE_DRAWABLE_DICTIONARY":
+                    arch.asset_type = AssetType.DRAWABLE_DICTIONARY
+                elif arch_xml.asset_type == "ASSET_TYPE_ASSETLESS":
+                    arch.asset_type = AssetType.ASSETLESS
+
+            self.message(f"Successfully imported: {self.filepath}")
+        except:
+            self.error(f"Error during import: {traceback.format_exc()}")
+            return False
 
 
 class SOLLUMZ_OT_export_ymap(SOLLUMZ_OT_base, bpy.types.Operator):
-    """Exports the selected YTYP."""
+    """Export the selected YTYP."""
     bl_idname = "sollumz.exportytyp"
     bl_label = "Export ytyp.xml"
     bl_action = "Export a YTYP"
@@ -330,9 +436,11 @@ class SOLLUMZ_OT_export_ymap(SOLLUMZ_OT_base, bpy.types.Operator):
                 elif archetype.type == ArchetypeType.TIME:
                     archetype_xml = self.init_archetype(
                         TimeArchetype(), archetype)
+                    archetype_xml.time_flags = archetype.time_flags
                 elif archetype.type == ArchetypeType.MLO:
                     archetype_xml = self.init_archetype(
                         MloArchetype(), archetype)
+                    archetype_xml.mlo_flags = archetype.mlo_flags
                     for room in archetype.rooms:
                         room_xml = Room()
                         room_xml.name = room.name
