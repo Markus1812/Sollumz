@@ -40,7 +40,27 @@ class TimecycleModifierProperties(bpy.types.PropertyGroup):
     end_hour: bpy.props.IntProperty(name="End Hour")
 
 
+def get_asset_from_name(name, context):
+    for obj in context.collection.all_objects:
+        if obj.name == name:
+            return obj
+
+
 class ArchetypeProperties(bpy.types.PropertyGroup):
+    def update_asset_name(self, context):
+        for obj in bpy.context.collection.all_objects:
+            if obj.name == self.asset_name:
+                self.asset = obj
+                return
+        self.asset = None
+
+    def set_asset_name(self, value):
+        self["asset_name"] = value
+
+    bb_min: bpy.props.FloatVectorProperty(name="Bound Min")
+    bb_max: bpy.props.FloatVectorProperty(name="Bound Max")
+    bs_center: bpy.props.FloatVectorProperty(name="Bound Center")
+    bs_radius: bpy.props.FloatProperty(name="Bound Radius")
     type: bpy.props.EnumProperty(
         items=items_from_enums(ArchetypeType), name="Type")
     lod_dist: bpy.props.FloatProperty(name="Lod Distance", default=100)
@@ -57,6 +77,8 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     asset_type: bpy.props.EnumProperty(
         items=items_from_enums(AssetType), name="Asset Type")
     asset: bpy.props.PointerProperty(name="Asset", type=bpy.types.Object)
+    asset_name: bpy.props.StringProperty(
+        name="Asset Name", update=update_asset_name)
     # Time archetype
     time_flags: bpy.props.IntProperty(name="Time Flags")
     # Mlo archetype

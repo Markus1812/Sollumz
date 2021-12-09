@@ -293,6 +293,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                 arch.bb_max = arch_xml.bb_max
                 arch.bs_center = arch_xml.bs_center
                 arch.bs_radius = arch_xml.bs_radius
+                arch.asset_name = arch_xml.asset_name
 
                 if arch_xml.type == "CBaseArchetypeDef":
                     arch.type = ArchetypeType.BASE
@@ -332,19 +333,6 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         tcm.range = tcm_xml.range
                         tcm.start_hour = tcm_xml.start_hour
                         tcm.end_hour = tcm_xml.end_hour
-
-                # Find asset in scene
-                asset = None
-                for obj in context.collection.all_objects:
-                    if obj.name == arch_xml.asset_name:
-                        asset = obj
-                        break
-
-                if asset:
-                    arch.asset = asset
-                else:
-                    self.message(
-                        f"Asset '{arch_xml.asset_name}' in ytyp '{ytyp_xml.name}'' not found in scene. Please import the asset and link it.")
 
                 if arch_xml.asset_type == "ASSET_TYPE_UNINITIALIZED":
                     arch.asset_type = AssetType.UNITIALIZED
@@ -404,13 +392,19 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
         arch_xml.clip_dictionary = arch.clip_dictionary
         arch_xml.drawable_dictionary = arch.drawable_dictionary
         arch_xml.physics_dictionary = arch.physics_dictionary
-        bbmin, bbmax = get_bound_extents(arch.asset, world=False)
-        arch_xml.bb_min = bbmin
-        arch_xml.bb_max = bbmax
-        arch_xml.bs_center = get_bound_center(arch.asset, world=False)
-        arch_xml.bs_radius = get_obj_radius(arch.asset, world=False)
+        if arch.asset:
+            bbmin, bbmax = get_bound_extents(arch.asset, world=False)
+            arch_xml.bb_min = bbmin
+            arch_xml.bb_max = bbmax
+            arch_xml.bs_center = get_bound_center(arch.asset, world=False)
+            arch_xml.bs_radius = get_obj_radius(arch.asset, world=False)
+        else:
+            arch_xml.bb_min = Vector(arch.bb_min)
+            arch_xml.bb_max = Vector(arch.bb_max)
+            arch_xml.bs_center = Vector(arch.bs_center)
+            arch_xml.bs_radius = arch.bs_radius
         asset_type = arch.asset_type
-        arch_xml.asset_name = arch.asset.name
+        arch_xml.asset_name = arch.asset_name
         if asset_type == AssetType.UNITIALIZED:
             arch_xml.asset_type = "ASSET_TYPE_UNINITIALIZED"
         elif asset_type == AssetType.FRAGMENT:
