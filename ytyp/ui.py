@@ -2,7 +2,7 @@ import bpy
 
 from ..tools.meshhelper import get_children_recursive
 from ..sollumz_properties import ArchetypeType
-from .properties import RoomProperties, PortalProperties, TimecycleModifier
+from .properties import RoomProperties, PortalProperties, TimecycleModifierProperties
 from mathutils import Vector
 
 
@@ -466,5 +466,5 @@ class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
 
         if len(selected_archetype.timecycle_modifiers) > 0:
             selected_tcm = selected_archetype.timecycle_modifiers[selected_archetype.tcm_index]
-            for prop_name in TimecycleModifier.__annotations__:
+            for prop_name in TimecycleModifierProperties.__annotations__:
                 layout.prop(selected_tcm, prop_name)

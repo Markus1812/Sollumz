@@ -30,11 +30,12 @@ class PortalProperties(bpy.types.PropertyGroup):
     audio_occlusion: bpy.props.IntProperty(name="Audio Occlusion")
 
 
-class TimecycleModifier(bpy.types.PropertyGroup):
+class TimecycleModifierProperties(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="Name")
     sphere: bpy.props.FloatVectorProperty(
         name="Sphere", subtype="QUATERNION", size=4)
     percentage: bpy.props.IntProperty(name="Percentage")
+    range: bpy.props.FloatProperty(name="Range")
     start_hour: bpy.props.IntProperty(name="Start Hour")
     end_hour: bpy.props.IntProperty(name="End Hour")
 
@@ -64,7 +65,7 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     portals: bpy.props.CollectionProperty(
         type=PortalProperties, name="Portals")
     timecycle_modifiers: bpy.props.CollectionProperty(
-        type=TimecycleModifier, name="Timecycle Modifiers")
+        type=TimecycleModifierProperties, name="Timecycle Modifiers")
     # Selected room index
     room_index: bpy.props.IntProperty(name="Room Index")
     # Selected portal index
