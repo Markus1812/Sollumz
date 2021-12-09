@@ -469,6 +469,15 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         portal_xml.opactity = portal.opacity
                         portal_xml.audio_occlusion = portal.audio_occlusion
                         archetype_xml.portals.append(portal_xml)
+                    for tcm in archetype.timecycle_modifiers:
+                        tcm_xml = TimeCycleModifier()
+                        tcm_xml.name = tcm.name
+                        tcm_xml.sphere = tcm.sphere
+                        tcm_xml.percentage = tcm.percentage
+                        tcm_xml.range = tcm.range
+                        tcm_xml.start_hour = tcm.start_hour
+                        tcm_xml.end_hour = tcm.end_hour
+                        archetype_xml.timecycle_modifiers.append(tcm_xml)
                 else:
                     continue
                 ytyp.archetypes.append(archetype_xml)
