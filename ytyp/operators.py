@@ -24,6 +24,8 @@ class SOLLUMZ_OT_create_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
         item.name = f"YTYP.{index}"
         context.scene.ytyp_index = index - 1
 
+        return True
+
 
 class SOLLUMZ_OT_delete_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
     """Delete a ytyp from the project"""
@@ -33,6 +35,8 @@ class SOLLUMZ_OT_delete_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
     def run(self, context):
         context.scene.ytyps.remove(context.scene.ytyp_index)
         context.scene.ytyp_index = max(context.scene.ytyp_index - 1, 0)
+
+        return True
 
 
 class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -51,6 +55,8 @@ class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
         item.name = f"{SOLLUMZ_UI_NAMES[ArchetypeType.BASE]}.{index}"
         selected_ytyp.archetype_index = index - 1
 
+        return True
+
 
 class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
     """Delete archetype from selected ytyp"""
@@ -66,6 +72,8 @@ class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_ytyp.archetypes.remove(selected_ytyp.archetype_index)
         selected_ytyp.archetype_index = max(
             selected_ytyp.archetype_index - 1, 0)
+
+        return True
 
 
 class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -87,6 +95,8 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
         index = len(selected_archetype.rooms)
         item.name = f"Room.{index}"
         selected_archetype.room_index = index - 1
+
+        return True
 
 
 class SOLLUMZ_OT_set_bounds_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -139,6 +149,7 @@ class SOLLUMZ_OT_delete_room(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_archetype.rooms.remove(selected_archetype.room_index)
         selected_archetype.room_index = max(
             selected_archetype.room_index - 1, 0)
+        return True
 
 
 class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -159,6 +170,7 @@ class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_archetype.portals.add()
         index = len(selected_archetype.portals)
         selected_archetype.portal_index = index - 1
+        return True
 
 
 class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -219,6 +231,7 @@ class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_archetype.portals.remove(selected_archetype.portal_index)
         selected_archetype.portal_index = max(
             selected_archetype.portal_index - 1, 0)
+        return True
 
 
 class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -238,6 +251,7 @@ class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         item = selected_archetype.timecycle_modifiers.add()
         item.name = f"Timecycle Modifier.{len(selected_archetype.timecycle_modifiers)}"
+        return True
 
 
 class SOLLUMZ_OT_delete_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
@@ -258,6 +272,7 @@ class SOLLUMZ_OT_delete_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
         selected_archetype.timecycle_modifiers.remove(
             selected_archetype.tcm_index)
         selected_archetype.tcm_index = max(selected_archetype.tcm_index - 1, 0)
+        return True
 
 
 class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
@@ -346,6 +361,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                     arch.asset_type = AssetType.ASSETLESS
 
             self.message(f"Successfully imported: {self.filepath}")
+            return True
         except:
             self.error(f"Error during import: {traceback.format_exc()}")
             return False
