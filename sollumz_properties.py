@@ -292,11 +292,11 @@ def items_from_enums(*enums):
 
 
 class EntityProperties(bpy.types.PropertyGroup):
-    archetype_name: bpy.props.StringProperty(name="ArchetypeName")
+    archetype_name: bpy.props.StringProperty(name="Archetype Name")
     flags: bpy.props.IntProperty(name="Flags")
-    guid: bpy.props.FloatProperty(name="Guid")
-    parent_index: bpy.props.IntProperty(name="ParentIndex")
-    lod_dist: bpy.props.FloatProperty(name="Lod Distance")
+    guid: bpy.props.FloatProperty(name="GUID")
+    parent_index: bpy.props.IntProperty(name="Parent Index")
+    lod_dist: bpy.props.FloatProperty(name="Lod Distance", default=200)
     child_lod_dist: bpy.props.FloatProperty(name="Child Lod Distance")
     lod_level: bpy.props.EnumProperty(
         items=items_from_enums(EntityLodLevel),
@@ -313,9 +313,9 @@ class EntityProperties(bpy.types.PropertyGroup):
     )
     # extensions?
     ambient_occlusion_multiplier: bpy.props.FloatProperty(
-        name="Ambient Occlusion Multiplier")
+        name="Ambient Occlusion Multiplier", default=255)
     artificial_ambient_occlusion: bpy.props.FloatProperty(
-        name="Artificial Ambient Occlusion")
+        name="Artificial Ambient Occlusion", default=255)
     tint_value: bpy.props.FloatProperty(name="Tint Value")
 
 
