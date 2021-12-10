@@ -1,5 +1,5 @@
 import bpy
-from ..resources.shader import Shader, ShaderManager
+from ..resources.shader import ShaderManager
 from ..sollumz_properties import MaterialType
 from collections import namedtuple
 
@@ -98,7 +98,7 @@ def get_tinted_sampler(mat):  # move to blenderhelper.py?
             if node.image:
                 return node.image
             else:
-                return 0  # return 0 because that means it has the tinted sampler parameter but no image
+                return None  # return none because that means it has the tinted sampler parameter but no image
     return None  # return none because that means it has no parameter which means it isnt a tinted shader
 
 
@@ -113,7 +113,8 @@ def get_detail_extra_sampler(mat):  # move to blenderhelper.py?
 def create_tinted_texture_from_image(img):  # move to blenderhelper.py?
     bpy.ops.texture.new()
     txt = bpy.data.textures[len(bpy.data.textures) - 1]
-    txt.image = img
+    if img != None:
+        txt.image = img
     txt.use_interpolation = False
     txt.use_mipmap = False
     txt.use_alpha = False
@@ -136,7 +137,7 @@ def create_tinted_shader_graph(obj):  # move to blenderhelper.py?
     geom.node_group = tnt_ng
     txt = create_tinted_texture_from_image(tint_img)
     txt_node = geom.node_group.nodes["Attribute Sample Texture"]
-    txt_node.texture = txt
+    txt_node.inputs[1].default_value = txt
     obj.data.vertex_colors.new(name="TintColor")
 
 
@@ -151,11 +152,11 @@ def create_tinted_geometry_graph():  # move to blenderhelper.py?
     input.location.x = -150
     output = gnt.nodes.new("NodeGroupOutput")
     locx = 150
-    sepxyz = gnt.nodes.new("GeometryNodeAttributeSeparateXYZ")
+    sepxyz = gnt.nodes.new("GeometryNodeLegacyAttributeSeparateXYZ")
     gnt.links.new(input.outputs[0], sepxyz.inputs[0])
     mathns = []
     for i in range(9):
-        math = gnt.nodes.new("GeometryNodeAttributeMath")
+        math = gnt.nodes.new("GeometryNodeLegacyAttributeMath")
         math.location.x = locx
         if len(mathns) > 0:
             link_geos(gnt.links, math, mathns[i - 1])
@@ -163,12 +164,12 @@ def create_tinted_geometry_graph():  # move to blenderhelper.py?
             link_geos(gnt.links, math, sepxyz)
         mathns.append(math)
         locx += 150
-    comxyz = gnt.nodes.new("GeometryNodeAttributeCombineXYZ")
+    comxyz = gnt.nodes.new("GeometryNodeLegacyAttributeCombineXYZ")
     comxyz.location.x = locx
     locx += 150
     gnt.links.new(mathns[len(mathns) - 1].outputs["Geometry"],
                   comxyz.inputs["Geometry"])
-    tsample = gnt.nodes.new("GeometryNodeAttributeSampleTexture")
+    tsample = gnt.nodes.new("GeometryNodeLegacyAttributeSampleTexture")
     tsample.location.x = locx
     locx += 250
     gnt.links.new(comxyz.outputs["Geometry"], tsample.inputs["Geometry"])
@@ -234,8 +235,8 @@ def create_tinted_geometry_graph():  # move to blenderhelper.py?
     comxyz.inputs[1].default_value = "r3"
     comxyz.inputs[7].default_value = "TintUV"
 
-    tsample.inputs[1].default_value = "TintUV"
-    tsample.inputs[2].default_value = "TintColor"
+    tsample.inputs[2].default_value = "TintUV"
+    tsample.inputs[3].default_value = "TintColor"
 
     return gnt
 
@@ -243,6 +244,7 @@ def create_tinted_geometry_graph():  # move to blenderhelper.py?
 def create_image_node(node_tree, param):
     imgnode = node_tree.nodes.new("ShaderNodeTexImage")
     imgnode.name = param.name
+    imgnode.is_sollumz = True
     return imgnode
 
 
@@ -251,6 +253,7 @@ def create_vector_nodes(node_tree, param):
         if attr.name != 'name' and attr.name != 'type':
             node = node_tree.nodes.new("ShaderNodeValue")
             node.name = f"{param.name}_{attr.name}"
+            node.is_sollumz = True
             node.outputs[0].default_value = float(attr.value)
 
 
@@ -488,7 +491,7 @@ def link_value_shader_parameters(shader, node_tree):
             links.new(spec.outputs[0], mult.inputs[0])
             links.new(map.outputs[0], mult.inputs[1])
             links.new(spec_im.outputs[0], map.inputs[0])
-            links.new(mult.outputs[0], bsdf.inputs[0])
+            links.new(mult.outputs[0], bsdf.inputs["Specular"])
     if spec_fm:
         bsdf = try_get_node(node_tree, "Principled BSDF")
         if bsdf:
