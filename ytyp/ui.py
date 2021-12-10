@@ -1,19 +1,26 @@
 import bpy
 
-from ..tools.meshhelper import get_children_recursive
+from ..tools.blenderhelper import find_parent
 from ..sollumz_properties import ArchetypeType
 from .properties import RoomProperties, PortalProperties, TimecycleModifierProperties
 from mathutils import Vector
 
 
 def can_draw_gizmos(context):
+    aobj = context.active_object
     num_ytyps = len(context.scene.ytyps)
-    if num_ytyps > 0 and context.scene.ytyp_index < num_ytyps:
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        num_archtypes = len(selected_ytyp.archetypes)
-        if num_archtypes > 0 and selected_ytyp.archetype_index < num_archtypes:
-            selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-            return selected_archetype.asset and selected_archetype.type == ArchetypeType.MLO and (context.active_object in get_children_recursive(selected_archetype.asset) or context.active_object == selected_archetype.asset)
+    if aobj:
+        if num_ytyps > 0 and context.scene.ytyp_index < num_ytyps:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            num_archtypes = len(selected_ytyp.archetypes)
+            if num_archtypes > 0 and selected_ytyp.archetype_index < num_archtypes:
+                selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+                if not selected_archetype.asset and selected_archetype.type != ArchetypeType.MLO:
+                    return False
+                if not selected_archetype.asset.visible_get():
+                    return False
+                return aobj == selected_archetype.asset or find_parent(
+                    aobj, selected_archetype.asset.name)
     return False
 
 
