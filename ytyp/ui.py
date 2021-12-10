@@ -40,6 +40,9 @@ class SOLLUMZ_PT_YTYP_TOOL_PANEL(bpy.types.Panel):
     bl_options = {'DEFAULT_CLOSED'}
     bl_category = "Sollumz Tools"
 
+    def draw_header(self, context):
+        self.layout.label(text="", icon="OBJECT_DATA")
+
     def draw(self, context):
         layout = self.layout
         layout.label(text="YTYPS")
