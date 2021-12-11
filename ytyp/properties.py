@@ -33,7 +33,7 @@ class PortalProperties(bpy.types.PropertyGroup):
             else:
                 if room.id == self.room_to_id:
                     return index
-        return -1
+        return 0
 
     def get_room_from_index(self):
         return self.get_room_index(True)
