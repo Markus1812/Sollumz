@@ -1,4 +1,6 @@
 import bpy
+
+from ..tools.utils import flag_list_to_int, flag_prop_to_list, int_to_bool_list
 from ..sollumz_properties import items_from_enums, ArchetypeType, AssetType
 from ..sollumz_properties import EntityProperties
 from mathutils import Vector
@@ -140,6 +142,67 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
         type=bpy.types.Object, name="Linked Object", update=update_linked_object)
 
 
+class ArchetypeFlags(bpy.types.PropertyGroup):
+    def update_flags_total(self, context):
+        # Ensure string can be converted to int
+        try:
+            value = int((self.total))
+        except ValueError:
+            self.total = "0"
+
+        flags = int_to_bool_list(int(self.total))
+        for index, flag_name in enumerate(ArchetypeFlags.__annotations__):
+            if index < 32:
+                self[flag_name] = flags[index]
+
+    def update_flag(self, context):
+        flags = flag_prop_to_list(ArchetypeFlags, self)
+        flags.pop()
+        self.total = str(flag_list_to_int(flags))
+
+    flag1: bpy.props.BoolProperty(name="Unknown 1", update=update_flag)
+    flag2: bpy.props.BoolProperty(name="Unknown 2", update=update_flag)
+    flag3: bpy.props.BoolProperty(name="Unknown 3", update=update_flag)
+    flag4: bpy.props.BoolProperty(name="Unknown 4", update=update_flag)
+    flag5: bpy.props.BoolProperty(name="Unknown 5", update=update_flag)
+    flag6: bpy.props.BoolProperty(name="Static", update=update_flag)
+    flag7: bpy.props.BoolProperty(name="Unknown 7", update=update_flag)
+    flag8: bpy.props.BoolProperty(name="Instance", update=update_flag)
+    flag9: bpy.props.BoolProperty(name="Unknown 9", update=update_flag)
+    flag10: bpy.props.BoolProperty(name="Bone anims (YCD)", update=update_flag)
+    flag11: bpy.props.BoolProperty(name="Unknown 11", update=update_flag)
+    flag12: bpy.props.BoolProperty(name="Unknown 12", update=update_flag)
+    flag13: bpy.props.BoolProperty(name="Unknown 13", update=update_flag)
+    flag14: bpy.props.BoolProperty(
+        name="Object won't cast shadow", update=update_flag)
+    flag15: bpy.props.BoolProperty(name="Unknown 15", update=update_flag)
+    flag16: bpy.props.BoolProperty(name="Unknown 16", update=update_flag)
+    flag17: bpy.props.BoolProperty(
+        name="Double-sided rendering", update=update_flag)
+    flag18: bpy.props.BoolProperty(name="Dynamic", update=update_flag)
+    flag19: bpy.props.BoolProperty(name="Unknown 19", update=update_flag)
+    flag20: bpy.props.BoolProperty(name="Unknown 20", update=update_flag)
+    flag21: bpy.props.BoolProperty(name="Unknown 21", update=update_flag)
+    flag22: bpy.props.BoolProperty(name="Unknown 22", update=update_flag)
+    flag23: bpy.props.BoolProperty(name="Unknown 23", update=update_flag)
+    flag24: bpy.props.BoolProperty(name="Unknown 24", update=update_flag)
+    flag25: bpy.props.BoolProperty(name="Unknown 25", update=update_flag)
+    flag26: bpy.props.BoolProperty(name="Unknown 26", update=update_flag)
+    flag27: bpy.props.BoolProperty(
+        name="Enables special attribute", update=update_flag)
+    flag28: bpy.props.BoolProperty(name="Unknown 28", update=update_flag)
+    flag29: bpy.props.BoolProperty(
+        name="Disable red vertex channel", update=update_flag)
+    flag30: bpy.props.BoolProperty(
+        name="Disable green vertex channel", update=update_flag)
+    flag31: bpy.props.BoolProperty(
+        name="Disable blue vertex channel", update=update_flag)
+    flag32: bpy.props.BoolProperty(
+        name="Disable alpha vertex channel", update=update_flag)
+
+    total: bpy.props.StringProperty(name="Flags", update=update_flags_total)
+
+
 class ArchetypeProperties(bpy.types.PropertyGroup):
     def update_asset_name(self, context):
         for obj in context.scene.collection.all_objects:
@@ -173,7 +236,8 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     type: bpy.props.EnumProperty(
         items=items_from_enums(ArchetypeType), name="Type")
     lod_dist: bpy.props.FloatProperty(name="Lod Distance", default=100)
-    flags: bpy.props.IntProperty(name="Flags")
+    flags: bpy.props.PointerProperty(
+        type=ArchetypeFlags, name="Flags")
     special_attribute: bpy.props.IntProperty(name="Special Attribute")
     hd_texture_dist: bpy.props.FloatProperty(
         name="HD Texture Distance", default=100)

@@ -436,7 +436,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
             for arch_xml in ytyp_xml.archetypes:
                 arch = ytyp.archetypes.add()
                 arch.name = arch_xml.name
-                arch.flags = arch_xml.flags
+                arch.flags.total = str(arch_xml.flags)
                 arch.special_attribute = arch_xml.special_attribute
                 arch.hd_texture_dist = arch_xml.hd_texture_dist
                 arch.texture_dictionary = arch_xml.texture_dictionary
@@ -582,7 +582,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
     @staticmethod
     def init_archetype(arch_xml, arch):
         arch_xml.lod_dist = arch.lod_dist
-        arch_xml.flags = arch.flags
+        arch_xml.flags = arch.flags.total
         arch_xml.special_attribute = arch.special_attribute
         arch_xml.hd_texture_dist = arch.hd_texture_dist
         arch_xml.name = arch.name

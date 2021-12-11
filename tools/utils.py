@@ -4,6 +4,30 @@ from math import inf, sqrt
 from mathutils import Vector, Quaternion, Matrix
 
 
+def flag_list_to_int(flag_list):
+    flags = 0
+    for i, enabled in enumerate(flag_list):
+        if enabled == True:
+            flags += (1 << i)
+    return flags
+
+
+def int_to_bool_list(num, size=None):
+    return [bool(num & (1 << n)) for n in range(size or 32)]
+
+
+def flag_prop_to_list(prop_type, data_block, size=None):
+    size = size or 32
+    flags = [False] * size
+    i = 0
+    for flag_name in prop_type.__annotations__:
+        if i < size:
+            if flag_name in data_block:
+                flags[i] = data_block[flag_name] != 0
+        i += 1
+    return flags
+
+
 def divide_list(list, d):
     result = []
     for item in list:

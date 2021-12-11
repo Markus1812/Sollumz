@@ -2,7 +2,7 @@ import bpy
 
 from ..tools.blenderhelper import find_parent
 from ..sollumz_properties import ArchetypeType, EntityProperties
-from .properties import RoomProperties, PortalProperties, TimecycleModifierProperties, UnlinkedEntityProperties
+from .properties import *
 from mathutils import Vector
 
 
@@ -188,7 +188,6 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         layout.prop(selected_archetype, "type")
         layout.prop(selected_archetype, "name")
-        layout.prop(selected_archetype, "flags")
         layout.prop(selected_archetype, "special_attribute")
         layout.prop(selected_archetype, "texture_dictionary")
         layout.prop(selected_archetype, "clip_dictionary")
@@ -208,6 +207,26 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
         if selected_archetype.type == ArchetypeType.MLO:
             layout.prop(selected_archetype, "mlo_flags")
             layout.separator()
+
+
+class SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL(bpy.types.Panel):
+    bl_label = "Flags"
+    bl_idname = "SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
+
+    def draw(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        self.layout.prop(selected_archetype.flags, "total")
+        self.layout.separator()
+        grid = self.layout.grid_flow(columns=2)
+        for prop_name in ArchetypeFlags.__annotations__:
+            if prop_name == "total":
+                continue
+            grid.prop(selected_archetype.flags, prop_name)
 
 
 class RoomGizmo(bpy.types.Gizmo):
