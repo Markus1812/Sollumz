@@ -9,7 +9,6 @@ from ..resources.ymap import *
 from .properties import *
 from bpy_extras.io_utils import ImportHelper
 
-import uuid
 import os
 import traceback
 
@@ -92,10 +91,7 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        item = selected_archetype.rooms.add()
-        index = len(selected_archetype.rooms)
-        item.name = f"Room.{index}"
-        selected_archetype.room_index = index - 1
+        selected_archetype.new_room()
 
         return True
 
@@ -252,10 +248,11 @@ class SetPortalRoomHelper(SOLLUMZ_OT_base):
             return False
 
         selected_portal = selected_archetype.portals[selected_archetype.portal_index]
+        selected_room = selected_archetype.rooms[selected_archetype.room_index]
         if self.room_from:
-            selected_portal.room_from_index = selected_archetype.room_index
+            selected_portal.room_from_id = selected_room.id
         elif self.room_to:
-            selected_portal.room_to_index = selected_archetype.room_index
+            selected_portal.room_to_id = selected_room.id
         return True
 
 
@@ -482,7 +479,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         entity.artificial_ambient_occlusion = entity_xml.artificial_ambient_occlusion
                         entity.tint_value = entity_xml.tint_value
                     for room_xml in arch_xml.rooms:
-                        room = arch.rooms.add()
+                        room = arch.new_room()
                         room.name = room_xml.name
                         room.bb_min = room_xml.bb_min
                         room.bb_max = room_xml.bb_max
@@ -673,7 +670,6 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         archetype_xml.rooms.append(room_xml)
                     for portal_index, portal in enumerate(archetype.portals):
                         portal_xml = Portal()
-
                         for i in range(4):
                             corner = getattr(portal, f"corner{i + 1}")
                             corner_xml = Corner()

@@ -18,8 +18,29 @@ class RoomProperties(bpy.types.PropertyGroup):
     exterior_visibility_depth: bpy.props.IntProperty(
         name="Exterior Visibility Depth", default=-1)
 
+    # Blender usage only
+    id: bpy.props.IntProperty(name="Id")
+
 
 class PortalProperties(bpy.types.PropertyGroup):
+    def get_room_index(self, room_from):
+        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        for index, room in enumerate(selected_archetype.rooms):
+            if room_from:
+                if room.id == self.room_from_id:
+                    return index
+            else:
+                if room.id == self.room_to_id:
+                    return index
+        return -1
+
+    def get_room_from_index(self):
+        return self.get_room_index(True)
+
+    def get_room_to_index(self):
+        return self.get_room_index(False)
+
     def get_room_name(self, room_from):
         selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
@@ -46,10 +67,14 @@ class PortalProperties(bpy.types.PropertyGroup):
     corner2: bpy.props.FloatVectorProperty(name="Corner 2", subtype="XYZ")
     corner3: bpy.props.FloatVectorProperty(name="Corner 3", subtype="XYZ")
     corner4: bpy.props.FloatVectorProperty(name="Corner 4", subtype="XYZ")
-    room_from_index: bpy.props.IntProperty(name="Room From Index")
+    room_from_id: bpy.props.IntProperty(name="Room From Id")
+    room_from_index: bpy.props.IntProperty(
+        name="Room From Index", get=get_room_from_index)
     room_from_name: bpy.props.StringProperty(
         name="Room From", get=get_room_from_name)
-    room_to_index: bpy.props.IntProperty(name="Room To_index")
+    room_to_id: bpy.props.IntProperty(name="Room To Id")
+    room_to_index: bpy.props.IntProperty(
+        name="Room To Index", get=get_room_to_index)
     room_to_name: bpy.props.StringProperty(
         name="Room To", get=get_room_to_name)
     flags: bpy.props.IntProperty(name="Flags")
@@ -131,7 +156,14 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
         self.portal_index = len(self.portals) - 1
         item.id = self.last_portal_id + 1
         self.last_portal_id = item.id
-        print(item.id)
+        return item
+
+    def new_room(self):
+        item = self.rooms.add()
+        self.room_index = len(self.rooms) - 1
+        item.name = f"Room.{self.room_index}"
+        item.id = self.last_room_id + 1
+        self.last_room_id = item.id
         return item
 
     bb_min: bpy.props.FloatVectorProperty(name="Bound Min")
@@ -171,10 +203,12 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     room_index: bpy.props.IntProperty(name="Room Index")
     # Selected portal index
     portal_index: bpy.props.IntProperty(name="Portal Index")
-    # For creating unique portal id
+    # Unique portal id
     last_portal_id: bpy.props.IntProperty(name="")
     # Selected entity index
     entity_index: bpy.props.IntProperty(name="Entity Index")
+    # Unique room id
+    last_room_id: bpy.props.IntProperty(name="")
     # Selected timecycle modifier index
     tcm_index: bpy.props.IntProperty(
         name="Timecycle Modifier Index")

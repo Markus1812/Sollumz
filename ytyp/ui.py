@@ -460,7 +460,7 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
             selected_portal = selected_archetype.portals[selected_archetype.portal_index]
 
             for prop_name in PortalProperties.__annotations__:
-                if prop_name in ["room_from_index", "room_to_index", "name"]:
+                if prop_name in ["room_from_index", "room_to_index", "name", "room_from_id", "room_to_id"]:
                     continue
                 row = layout.row()
                 row.prop(selected_portal, prop_name)
