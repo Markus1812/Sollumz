@@ -1,5 +1,7 @@
 import bpy
 from ..sollumz_properties import items_from_enums, ArchetypeType, AssetType
+from ..sollumz_properties import EntityProperties
+from mathutils import Vector
 
 
 class RoomProperties(bpy.types.PropertyGroup):
@@ -46,6 +48,26 @@ def get_asset_from_name(name, context):
             return obj
 
 
+class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
+    def update_linked_object(self, context):
+        linked_obj = self.linked_object
+        if linked_obj:
+            linked_obj.location = self.position
+            linked_obj.rotation_euler = self.rotation.to_euler()
+            linked_obj.scale = Vector(
+                (self.scale_xy, self.scale_xy, self.scale_z))
+
+    # Transforms unused if no linked object
+    position: bpy.props.FloatVectorProperty(name="Position")
+    rotation: bpy.props.FloatVectorProperty(
+        name="Rotation", subtype="QUATERNION", size=4, default=(0, 0, 0, 1))
+    scale_xy: bpy.props.FloatProperty(name="Scale XY", default=1)
+    scale_z: bpy.props.FloatProperty(name="Scale Z", default=1)
+
+    linked_object: bpy.props.PointerProperty(
+        type=bpy.types.Object, name="Linked Object", update=update_linked_object)
+
+
 class ArchetypeProperties(bpy.types.PropertyGroup):
     def update_asset_name(self, context):
         for obj in bpy.context.collection.all_objects:
@@ -86,12 +108,16 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     rooms: bpy.props.CollectionProperty(type=RoomProperties, name="Rooms")
     portals: bpy.props.CollectionProperty(
         type=PortalProperties, name="Portals")
+    entities: bpy.props.CollectionProperty(
+        type=UnlinkedEntityProperties, name="Entities")
     timecycle_modifiers: bpy.props.CollectionProperty(
         type=TimecycleModifierProperties, name="Timecycle Modifiers")
     # Selected room index
     room_index: bpy.props.IntProperty(name="Room Index")
     # Selected portal index
     portal_index: bpy.props.IntProperty(name="Portal Index")
+    # Selected entity index
+    entity_index: bpy.props.IntProperty(name="Entity Index")
     # Selected timecycle modifier index
     tcm_index: bpy.props.IntProperty(
         name="Timecycle Modifier Index")

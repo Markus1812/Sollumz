@@ -1,8 +1,8 @@
 import bpy
 
 from ..tools.blenderhelper import find_parent
-from ..sollumz_properties import ArchetypeType
-from .properties import RoomProperties, PortalProperties, TimecycleModifierProperties
+from ..sollumz_properties import ArchetypeType, EntityProperties
+from .properties import RoomProperties, PortalProperties, TimecycleModifierProperties, UnlinkedEntityProperties
 from mathutils import Vector
 
 
@@ -72,11 +72,11 @@ class SOLLUMZ_UL_ARCHETYPE_LIST(bpy.types.UIList):
     ):
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
-            row.label(text=item.name, icon="OBJECT_DATA")
+            row.label(text=item.name, icon="SEQ_STRIP_META")
         elif self.layout_type in {"GRID"}:
             layout.alignment = "CENTER"
             layout.prop(item, "name",
-                        text=item.name, emboss=False, icon="OBJECT_DATA")
+                        text=item.name, emboss=False, icon="SEQ_STRIP_META")
 
 
 class SOLLUMZ_PT_YTYP_PANEL(bpy.types.Panel):
@@ -151,6 +151,22 @@ class SOLLUMZ_UL_TIMECYCLE_MODIFIER_LIST(bpy.types.UIList):
             layout.alignment = "CENTER"
             layout.prop(item, "name",
                         text=item.name, emboss=False, icon="TIME")
+
+
+class SOLLUMZ_UL_ENTITIES_LIST(bpy.types.UIList):
+    bl_idname = "SOLLUMZ_UL_ENTITIES_LIST"
+
+    def draw_item(
+        self, context, layout, data, item, icon, active_data, active_propname, index
+    ):
+        name = f"{index}: {item.archetype_name if len(item.archetype_name) > 0 else 'Unknown'}"
+        if self.layout_type in {"DEFAULT", "COMPACT"}:
+            row = layout.row()
+            row.label(text=name, icon="OBJECT_DATA")
+        elif self.layout_type in {"GRID"}:
+            layout.alignment = "CENTER"
+            layout.prop(item, "name",
+                        text=name, emboss=False, icon="OBJECT_DATA")
 
 
 class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
@@ -451,6 +467,52 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
                 layout.prop(selected_portal, prop_name)
 
 
+class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):
+    bl_label = "Entities"
+    bl_idname = "SOLLUMZ_PT_MLO_ENTITIES_PANEL"
+    bl_space_type = 'VIEW_3D'
+    bl_region_type = 'UI'
+    bl_options = {'DEFAULT_CLOSED'}
+    bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
+    bl_order = 2
+
+    @classmethod
+    def poll(cls, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+
+        return selected_archetype.type == ArchetypeType.MLO
+
+    def draw(self, context):
+        layout = self.layout
+        layout.use_property_split = True
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+
+        layout.template_list(SOLLUMZ_UL_ENTITIES_LIST.bl_idname, "",
+                             selected_archetype, "entities", selected_archetype, "entity_index")
+        row = layout.row()
+        row.operator("sollumz.createmloentity")
+        row.operator("sollumz.deletemloentity")
+        row = layout.row()
+        row.operator("sollumz.addobjasmloentity")
+
+        layout.separator()
+
+        if len(selected_archetype.entities) > 0:
+            selected_entity = selected_archetype.entities[selected_archetype.entity_index]
+            layout.prop(selected_entity, "linked_object")
+            layout.separator()
+            if not selected_entity.linked_object:
+                for prop_name in UnlinkedEntityProperties.__annotations__:
+                    if prop_name == "linked_object":
+                        continue
+                    layout.prop(selected_entity, prop_name)
+                layout.separator()
+            for prop_name in EntityProperties.__annotations__:
+                layout.prop(selected_entity, prop_name)
+
+
 class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
     bl_label = "Timecycle Modifiers"
     bl_idname = "SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL"
@@ -458,7 +520,7 @@ class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):
     bl_region_type = 'UI'
     bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
-    bl_order = 2
+    bl_order = 3
 
     @classmethod
     def poll(cls, context):

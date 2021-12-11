@@ -1,6 +1,6 @@
 import bpy
 from ..sollumz_helper import SOLLUMZ_OT_base
-from ..sollumz_properties import SOLLUMZ_UI_NAMES, ArchetypeType, AssetType
+from ..sollumz_properties import SOLLUMZ_UI_NAMES, ArchetypeType, AssetType, SollumType, EntityPriorityLevel, EntityLodLevel
 from ..tools.blenderhelper import get_selected_vertices
 from ..tools.meshhelper import get_bound_extents, get_bound_center, get_obj_radius
 from ..tools.utils import get_min_vector_list, get_max_vector_list
@@ -234,6 +234,68 @@ class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
         return True
 
 
+class SOLLUMZ_OT_create_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Add an entity to the selected mlo archetype"""
+    bl_idname = "sollumz.createmloentity"
+    bl_label = "Create Entity"
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        item = selected_archetype.entities.add()
+        return True
+
+
+class SOLLUMZ_OT_add_obj_as_entity(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Add an object as an entity to the selected mlo archetype"""
+    bl_idname = "sollumz.addobjasmloentity"
+    bl_label = "Add Selected Object as Entity"
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0 and (context.active_object and context.active_object.sollum_type == SollumType.DRAWABLE):
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        item = selected_archetype.entities.add()
+        item.linked_object = context.active_object
+        item.archetype_name = context.active_object.name
+        return True
+
+
+class SOLLUMZ_OT_delete_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Delete an entity from the selected mlo archetype"""
+    bl_idname = "sollumz.deletemloentity"
+    bl_label = "Delete Entity"
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype.entities.remove(
+            selected_archetype.entity_index)
+        selected_archetype.entity_index = max(
+            selected_archetype.entity_index - 1, 0)
+        return True
+
+
 class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
     """Add a timecycle modifier to the selected archetype"""
     bl_idname = "sollumz.createtimecyclemodifier"
@@ -318,6 +380,27 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                 elif arch_xml.type == "CMloArchetypeDef":
                     arch.type = ArchetypeType.MLO
                     arch.mlo_flags = arch_xml.mlo_flags
+                    for entity_xml in arch_xml.entities:
+                        entity = arch.entities.add()
+                        entity.position = entity_xml.position
+                        entity.rotation = entity_xml.rotation
+                        entity.scale_xy = entity_xml.scale_xy
+                        entity.scale_z = entity_xml.scale_z
+                        for obj in context.collection.all_objects:
+                            if entity_xml.archetype_name == obj.name and obj.name in context.view_layer.objects:
+                                entity.linked_object = obj
+                        entity.archetype_name = entity_xml.archetype_name
+                        entity.flags = entity_xml.flags
+                        entity.guid = entity_xml.guid
+                        entity.parent_index = entity_xml.parent_index
+                        entity.lod_dist = entity_xml.lod_dist
+                        entity.child_lod_dist = entity_xml.child_lod_dist
+                        entity.lod_level = EntityLodLevel[entity_xml.lod_level]
+                        entity.priority_level = EntityPriorityLevel[entity_xml.priority_level]
+                        entity.num_children = entity_xml.num_children
+                        entity.ambient_occlusion_multiplier = entity_xml.ambient_occlusion_multiplier
+                        entity.artificial_ambient_occlusion = entity_xml.artificial_ambient_occlusion
+                        entity.tint_value = entity_xml.tint_value
                     for room_xml in arch_xml.rooms:
                         room = arch.rooms.add()
                         room.name = room_xml.name
@@ -451,6 +534,35 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                     archetype_xml = self.init_archetype(
                         MloArchetype(), archetype)
                     archetype_xml.mlo_flags = archetype.mlo_flags
+                    for entity in archetype.entities:
+                        entity_xml = EntityItem()
+                        entity_obj = entity.linked_object
+                        if entity_obj:
+                            entity_xml.position = entity_obj.location
+                            entity_xml.rotation = entity_obj.rotation_euler.to_quaternion()
+                            entity_xml.scale_xy = entity_obj.scale.x
+                            entity_xml.scale_z = entity_obj.scale.z
+                        else:
+                            entity_xml.position = Vector(entity.position)
+                            entity_xml.rotation = Quaternion(entity.rotation)
+                            entity_xml.scale_xy = entity.scale_xy
+                            entity_xml.scale_z = entity.scale_z
+                        entity_xml.archetype_name = entity.archetype_name
+                        entity_xml.flags = entity.flags
+                        entity_xml.parent_index = entity.parent_index
+                        entity_xml.lod_dist = entity.lod_dist
+                        entity_xml.child_lod_dist = entity.child_lod_dist
+                        lod_level = next(name for name, value in vars(
+                            EntityLodLevel).items() if value == (entity.lod_level))
+                        entity_xml.lod_level = lod_level
+                        priority_level = next(name for name, value in vars(
+                            EntityPriorityLevel).items() if value == (entity.priority_level))
+                        entity_xml.priority_level = priority_level
+                        entity_xml.ambient_occlusion_multiplier = entity.ambient_occlusion_multiplier
+                        entity_xml.artificial_ambient_occlusion = entity.artificial_ambient_occlusion
+                        entity_xml.tint_value = entity.tint_value
+                        archetype_xml.entities.append(entity_xml)
+
                     for room in archetype.rooms:
                         room_xml = Room()
                         room_xml.name = room.name

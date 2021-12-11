@@ -291,7 +291,7 @@ def items_from_enums(*enums):
     return items
 
 
-class EntityProperties(bpy.types.PropertyGroup):
+class EntityProperties:
     archetype_name: bpy.props.StringProperty(name="Archetype Name")
     flags: bpy.props.IntProperty(name="Flags")
     guid: bpy.props.FloatProperty(name="GUID")
@@ -317,6 +317,10 @@ class EntityProperties(bpy.types.PropertyGroup):
     artificial_ambient_occlusion: bpy.props.FloatProperty(
         name="Artificial Ambient Occlusion", default=255)
     tint_value: bpy.props.FloatProperty(name="Tint Value")
+
+
+class ObjectEntityProperties(bpy.types.PropertyGroup, EntityProperties):
+    pass
 
 
 def hide_obj_and_children(obj, value):
@@ -416,7 +420,7 @@ def register():
     bpy.types.ShaderNode.is_sollumz = bpy.props.BoolProperty(default=False)
 
     bpy.types.Object.entity_properties = bpy.props.PointerProperty(
-        type=EntityProperties)
+        type=ObjectEntityProperties)
 
     bpy.types.Scene.hide_collision = bpy.props.BoolProperty(
         name="Hide Collision", get=get_hide_collisions, set=set_hide_collisions)
