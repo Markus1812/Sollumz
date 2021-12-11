@@ -321,10 +321,10 @@ class PortalGizmo(bpy.types.Gizmo):
         return [
             corners[0],
             corners[1],
-            corners[2],
-
             corners[3],
+
             corners[2],
+            corners[3],
             corners[1],
         ]
 

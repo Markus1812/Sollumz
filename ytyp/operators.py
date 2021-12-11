@@ -201,8 +201,8 @@ class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operato
         new_portal = selected_archetype.new_portal()
         new_portal.corner1 = corners[0] - pos
         new_portal.corner2 = corners[1] - pos
-        new_portal.corner3 = corners[2] - pos
-        new_portal.corner4 = corners[3] - pos
+        new_portal.corner3 = corners[3] - pos
+        new_portal.corner4 = corners[2] - pos
 
         return True
 
