@@ -15,7 +15,7 @@ def can_draw_gizmos(context):
             num_archtypes = len(selected_ytyp.archetypes)
             if num_archtypes > 0 and selected_ytyp.archetype_index < num_archtypes:
                 selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-                if not selected_archetype.asset and selected_archetype.type != ArchetypeType.MLO:
+                if not selected_archetype.asset or selected_archetype.type != ArchetypeType.MLO:
                     return False
                 if not selected_archetype.asset.visible_get():
                     return False
@@ -127,8 +127,7 @@ class SOLLUMZ_UL_PORTAL_LIST(bpy.types.UIList):
     ):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        portal_index = list(selected_archetype.portals).index(item)
-        name = f"{portal_index}: {item.room_from} to {item.room_to}"
+        name = f"{item.room_from_name} to {item.room_to_name}"
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=name, icon="OUTLINER_OB_LIGHTPROBE")
@@ -464,7 +463,14 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
             selected_portal = selected_archetype.portals[selected_archetype.portal_index]
 
             for prop_name in PortalProperties.__annotations__:
-                layout.prop(selected_portal, prop_name)
+                if prop_name in ["room_from_index", "room_to_index"]:
+                    continue
+                row = layout.row()
+                row.prop(selected_portal, prop_name)
+                if prop_name == "room_from_name":
+                    row.operator("sollumz.setportalroomfrom")
+                elif prop_name == "room_to_name":
+                    row.operator("sollumz.setportalroomto")
 
 
 class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):

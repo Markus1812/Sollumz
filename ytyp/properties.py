@@ -20,12 +20,35 @@ class RoomProperties(bpy.types.PropertyGroup):
 
 
 class PortalProperties(bpy.types.PropertyGroup):
+    def get_room_name(self, room_from):
+        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        if len(selected_archetype.rooms) < 1:
+            return "No rooms"
+
+        index = self.room_from_index if room_from else self.room_to_index
+
+        if index < len(selected_archetype.rooms):
+            return selected_archetype.rooms[index].name
+        else:
+            return selected_archetype.rooms[0].name
+
+    def get_room_from_name(self):
+        return self.get_room_name(True)
+
+    def get_room_to_name(self):
+        return self.get_room_name(False)
+
     corner1: bpy.props.FloatVectorProperty(name="Corner 1", subtype="XYZ")
     corner2: bpy.props.FloatVectorProperty(name="Corner 2", subtype="XYZ")
     corner3: bpy.props.FloatVectorProperty(name="Corner 3", subtype="XYZ")
     corner4: bpy.props.FloatVectorProperty(name="Corner 4", subtype="XYZ")
-    room_from: bpy.props.IntProperty(name="Room From")
-    room_to: bpy.props.IntProperty(name="Room To")
+    room_from_index: bpy.props.IntProperty(name="Room From Index")
+    room_from_name: bpy.props.StringProperty(
+        name="Room From", get=get_room_from_name)
+    room_to_index: bpy.props.IntProperty(name="Room To_index")
+    room_to_name: bpy.props.StringProperty(
+        name="Room To", get=get_room_to_name)
     flags: bpy.props.IntProperty(name="Flags")
     mirror_priority: bpy.props.IntProperty(name="Mirror Priority")
     opacity: bpy.props.IntProperty(name="Opacity")

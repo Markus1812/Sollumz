@@ -234,6 +234,45 @@ class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
         return True
 
 
+class SetPortalRoomHelper(SOLLUMZ_OT_base):
+    bl_label = "Set to Selected"
+    room_from = False
+    room_to = False
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        if len(selected_archetype.rooms) < 1:
+            self.message("Archetype has no rooms!")
+            return False
+
+        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
+        if self.room_from:
+            selected_portal.room_from_index = selected_archetype.room_index
+        elif self.room_to:
+            selected_portal.room_to_index = selected_archetype.room_index
+        return True
+
+
+class SOLLUMZ_OT_set_portal_room_from(SetPortalRoomHelper, bpy.types.Operator):
+    """Set 'room from' to selected room"""
+    bl_idname = "sollumz.setportalroomfrom"
+    room_from = True
+
+
+class SOLLUMZ_OT_set_portal_room_to(SetPortalRoomHelper, bpy.types.Operator):
+    """Set 'room to' to selected room"""
+    bl_idname = "sollumz.setportalroomto"
+    room_to = True
+
+
 class SOLLUMZ_OT_create_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
     """Add an entity to the selected mlo archetype"""
     bl_idname = "sollumz.createmloentity"
@@ -417,8 +456,8 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         for index, corner in enumerate(portal_xml.corners):
                             portal[f"corner{index + 1}"] = [
                                 float(val) for val in corner.value]
-                        portal.room_from = portal_xml.room_from
-                        portal.room_to = portal_xml.room_to
+                        portal.room_from_index = portal_xml.room_from
+                        portal.room_to_index = portal_xml.room_to
                         portal.flags = portal_xml.flags
                         portal.mirror_priority = portal_xml.mirror_priority
                         portal.opacity = portal_xml.opacity
@@ -584,8 +623,8 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                             corner_xml.value = corner
                             portal_xml.corners.append(corner_xml)
 
-                        portal_xml.room_from = portal.room_from
-                        portal_xml.room_to = portal.room_to
+                        portal_xml.room_from = portal.room_from_index
+                        portal_xml.room_to = portal.room_to_index
                         portal_xml.flags = portal.flags
                         portal_xml.mirror_priority = portal.mirror_priority
                         portal_xml.opactity = portal.opacity
