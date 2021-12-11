@@ -493,8 +493,8 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         portal = arch.new_portal()
                         for index, corner in enumerate(portal_xml.corners):
                             setattr(portal, f"corner{index + 1}", corner.value)
-                        portal.room_from_index = portal_xml.room_from
-                        portal.room_to_index = portal_xml.room_to
+                        portal.room_from_id = arch.rooms[portal_xml.room_from].id
+                        portal.room_to_id = arch.rooms[portal_xml.room_to].id
                         portal.flags = portal_xml.flags
                         portal.mirror_priority = portal_xml.mirror_priority
                         portal.opacity = portal_xml.opacity
