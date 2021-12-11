@@ -77,7 +77,7 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
     # Transforms unused if no linked object
     position: bpy.props.FloatVectorProperty(name="Position")
     rotation: bpy.props.FloatVectorProperty(
-        name="Rotation", subtype="QUATERNION", size=4, default=(0, 0, 0, 1))
+        name="Rotation", subtype="QUATERNION", size=4, default=(1, 0, 0, 0))
     scale_xy: bpy.props.FloatProperty(name="Scale XY", default=1)
     scale_z: bpy.props.FloatProperty(name="Scale Z", default=1)
 
