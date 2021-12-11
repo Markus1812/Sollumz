@@ -572,6 +572,14 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                 portal.attached_objects.append(index)
 
     @staticmethod
+    def get_portal_count(room, portals):
+        count = 0
+        for portal in portals:
+            if portal.room_from_id == room.id or portal.room_to_id == room.id:
+                count += 1
+        return count
+
+    @staticmethod
     def init_archetype(arch_xml, arch):
         arch_xml.lod_dist = arch.lod_dist
         arch_xml.flags = arch.flags
@@ -665,6 +673,9 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         room_xml.flags = room.flags
                         room_xml.floor_id = room.floor_id
                         room_xml.exterior_visibility_depth = room.exterior_visibility_depth
+                        room_xml.portal_count = self.get_portal_count(
+                            room, archetype.portals)
+
                         self.set_room_attached_objects(
                             room_xml, archetype_xml.entities)
                         archetype_xml.rooms.append(room_xml)
