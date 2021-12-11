@@ -53,7 +53,11 @@ class Corner(ElementProperty):
 
     @staticmethod
     def from_xml(element):
-        return Corner(value=tuple(element.text.split(",")))
+        value = element.text.split(",")
+        value = [float(val) for val in value]
+        if len(value) > 3:
+            value = value[:3]
+        return Corner(value=tuple(value))
 
     def to_xml(self):
         if not self.value or len(self.value) < 1:

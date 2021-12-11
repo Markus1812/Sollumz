@@ -454,8 +454,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                     for portal_xml in arch_xml.portals:
                         portal = arch.portals.add()
                         for index, corner in enumerate(portal_xml.corners):
-                            portal[f"corner{index + 1}"] = [
-                                float(val) for val in corner.value]
+                            portal[f"corner{index + 1}"] = corner.value
                         portal.room_from_index = portal_xml.room_from
                         portal.room_to_index = portal_xml.room_to
                         portal.flags = portal_xml.flags
