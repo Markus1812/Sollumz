@@ -9,6 +9,7 @@ from ..resources.ymap import *
 from .properties import *
 from bpy_extras.io_utils import ImportHelper
 
+import uuid
 import os
 import traceback
 
@@ -167,9 +168,8 @@ class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
     def run(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        selected_archetype.portals.add()
-        index = len(selected_archetype.portals)
-        selected_archetype.portal_index = index - 1
+        selected_archetype.new_portal()
+
         return True
 
 
@@ -202,9 +202,7 @@ class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operato
         corners.sort()
 
         pos = selected_archetype.asset.location
-        new_portal = selected_archetype.portals.add()
-        index = len(selected_archetype.portals)
-        selected_archetype.portal_index = index - 1
+        new_portal = selected_archetype.new_portal()
         new_portal.corner1 = corners[0] - pos
         new_portal.corner2 = corners[1] - pos
         new_portal.corner3 = corners[2] - pos
@@ -335,6 +333,49 @@ class SOLLUMZ_OT_delete_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
         return True
 
 
+class SOLLUMZ_OT_set_mlo_entity_portal(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Set entity attached portal"""
+    bl_idname = "sollumz.setmloentityportal"
+    bl_label = "Set to Selected"
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_entity = selected_archetype.entities[selected_archetype.entity_index]
+        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
+
+        selected_entity.attached_portal_id = selected_portal.id
+        return True
+
+
+class SOLLUMZ_OT_clear_mlo_entity_portal(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Clear entity attached portal"""
+    bl_idname = "sollumz.clearmloentityportal"
+    bl_label = "Clear Portal"
+
+    @classmethod
+    def poll(cls, context):
+        if len(context.scene.ytyps) > 0:
+            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+            return len(selected_ytyp.archetypes) > 0
+        return False
+
+    def run(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_entity = selected_archetype.entities[selected_archetype.entity_index]
+
+        selected_entity.attached_portal_id = -1
+        return True
+
+
 class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
     """Add a timecycle modifier to the selected archetype"""
     bl_idname = "sollumz.createtimecyclemodifier"
@@ -452,7 +493,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         room.floor_id = room_xml.floor_id
                         room.exterior_visibility_depth = room_xml.exterior_visibility_depth
                     for portal_xml in arch_xml.portals:
-                        portal = arch.portals.add()
+                        portal = arch.new_portal()
                         for index, corner in enumerate(portal_xml.corners):
                             portal[f"corner{index + 1}"] = corner.value
                         portal.room_from_index = portal_xml.room_from
@@ -517,6 +558,21 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
 
     def get_filepath(self, name):
         return os.path.join(self.directory, name + ".ytyp.xml")
+
+    @staticmethod
+    def set_room_attached_objects(room, entities):
+        bbmin = room.bb_min
+        bbmax = room.bb_max
+        for index, entity in enumerate(entities):
+            pos = entity.position
+            if pos.x >= bbmin.x and pos.x <= bbmax.x and pos.y >= bbmin.y and pos.z <= bbmax.y and pos.z >= bbmin.z and pos.y <= bbmax.z:
+                room.attached_objects.append(index)
+
+    @staticmethod
+    def set_portal_attached_objects(portal, portal_index, entities):
+        for index, entity in enumerate(entities):
+            if entity.attached_portal_index == portal_index:
+                portal.attached_objects.append(index)
 
     @staticmethod
     def init_archetype(arch_xml, arch):
@@ -612,8 +668,10 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         room_xml.flags = room.flags
                         room_xml.floor_id = room.floor_id
                         room_xml.exterior_visibility_depth = room.exterior_visibility_depth
+                        self.set_room_attached_objects(
+                            room_xml, archetype_xml.entities)
                         archetype_xml.rooms.append(room_xml)
-                    for portal in archetype.portals:
+                    for portal_index, portal in enumerate(archetype.portals):
                         portal_xml = Portal()
 
                         for i in range(4):
@@ -626,7 +684,9 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         portal_xml.room_to = portal.room_to_index
                         portal_xml.flags = portal.flags
                         portal_xml.mirror_priority = portal.mirror_priority
-                        portal_xml.opactity = portal.opacity
+                        self.set_portal_attached_objects(
+                            portal_xml, portal_index, archetype.entities)
+                        portal_xml.opacity = portal.opacity
                         portal_xml.audio_occlusion = portal.audio_occlusion
                         archetype_xml.portals.append(portal_xml)
                     for tcm in archetype.timecycle_modifiers:

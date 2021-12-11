@@ -125,16 +125,13 @@ class SOLLUMZ_UL_PORTAL_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        name = f"{item.room_from_name} to {item.room_to_name}"
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
-            row.label(text=name, icon="OUTLINER_OB_LIGHTPROBE")
+            row.label(text=item.name, icon="OUTLINER_OB_LIGHTPROBE")
         elif self.layout_type in {"GRID"}:
             layout.alignment = "CENTER"
             layout.prop(item, "name",
-                        text=name, emboss=False, icon="OUTLINER_OB_LIGHTPROBE")
+                        text=item.name, emboss=False, icon="OUTLINER_OB_LIGHTPROBE")
 
 
 class SOLLUMZ_UL_TIMECYCLE_MODIFIER_LIST(bpy.types.UIList):
@@ -158,7 +155,7 @@ class SOLLUMZ_UL_ENTITIES_LIST(bpy.types.UIList):
     def draw_item(
         self, context, layout, data, item, icon, active_data, active_propname, index
     ):
-        name = f"{index}: {item.archetype_name if len(item.archetype_name) > 0 else 'Unknown'}"
+        name = f"{item.archetype_name if len(item.archetype_name) > 0 else 'Unknown'}"
         if self.layout_type in {"DEFAULT", "COMPACT"}:
             row = layout.row()
             row.label(text=name, icon="OBJECT_DATA")
@@ -463,7 +460,7 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
             selected_portal = selected_archetype.portals[selected_archetype.portal_index]
 
             for prop_name in PortalProperties.__annotations__:
-                if prop_name in ["room_from_index", "room_to_index"]:
+                if prop_name in ["room_from_index", "room_to_index", "name"]:
                     continue
                 row = layout.row()
                 row.prop(selected_portal, prop_name)
@@ -508,7 +505,13 @@ class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):
         if len(selected_archetype.entities) > 0:
             selected_entity = selected_archetype.entities[selected_archetype.entity_index]
             layout.prop(selected_entity, "linked_object")
+            row = layout.row()
+            row.prop(selected_entity, "attached_portal_name",
+                     text="Attached Portal")
+            row.operator("sollumz.setmloentityportal")
+            row.operator("sollumz.clearmloentityportal", text="", icon="X")
             layout.separator()
+
             if not selected_entity.linked_object:
                 for prop_name in UnlinkedEntityProperties.__annotations__:
                     if prop_name == "linked_object":

@@ -24,11 +24,11 @@ class PortalProperties(bpy.types.PropertyGroup):
         selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
         if len(selected_archetype.rooms) < 1:
-            return "No rooms"
+            return ""
 
         index = self.room_from_index if room_from else self.room_to_index
 
-        if index < len(selected_archetype.rooms):
+        if index < len(selected_archetype.rooms) and index >= 0:
             return selected_archetype.rooms[index].name
         else:
             return selected_archetype.rooms[0].name
@@ -38,6 +38,9 @@ class PortalProperties(bpy.types.PropertyGroup):
 
     def get_room_to_name(self):
         return self.get_room_name(False)
+
+    def get_name(self):
+        return f"{self.room_from_name} to {self.room_to_name}"
 
     corner1: bpy.props.FloatVectorProperty(name="Corner 1", subtype="XYZ")
     corner2: bpy.props.FloatVectorProperty(name="Corner 2", subtype="XYZ")
@@ -53,6 +56,10 @@ class PortalProperties(bpy.types.PropertyGroup):
     mirror_priority: bpy.props.IntProperty(name="Mirror Priority")
     opacity: bpy.props.IntProperty(name="Opacity")
     audio_occlusion: bpy.props.IntProperty(name="Audio Occlusion")
+
+    # Blender use only
+    name: bpy.props.StringProperty(name="Name", get=get_name)
+    id: bpy.props.IntProperty(name="Id")
 
 
 class TimecycleModifierProperties(bpy.types.PropertyGroup):
@@ -74,12 +81,35 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
             linked_obj.scale = Vector(
                 (self.scale_xy, self.scale_xy, self.scale_z))
 
+    def get_portal_index(self):
+        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        for index, portal in enumerate(selected_archetype.portals):
+            if portal.id == self.attached_portal_id:
+                return index
+        return -1
+
+    def get_portal_name(self):
+        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        index = self.attached_portal_index
+        if index >= 0 and index < len(selected_archetype.portals):
+            return selected_archetype.portals[self.attached_portal_index].name
+        return ""
+
     # Transforms unused if no linked object
     position: bpy.props.FloatVectorProperty(name="Position")
     rotation: bpy.props.FloatVectorProperty(
         name="Rotation", subtype="QUATERNION", size=4, default=(1, 0, 0, 0))
     scale_xy: bpy.props.FloatProperty(name="Scale XY", default=1)
     scale_z: bpy.props.FloatProperty(name="Scale Z", default=1)
+
+    attached_portal_index: bpy.props.IntProperty(
+        name="Attached Portal Index", get=get_portal_index)
+    attached_portal_id: bpy.props.IntProperty(
+        name="Attached Portal Id", default=-1)
+    attached_portal_name: bpy.props.StringProperty(
+        name="Attached Portal Name", get=get_portal_name)
 
     linked_object: bpy.props.PointerProperty(
         type=bpy.types.Object, name="Linked Object", update=update_linked_object)
@@ -95,6 +125,14 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
 
     def set_asset_name(self, value):
         self["asset_name"] = value
+
+    def new_portal(self):
+        item = self.portals.add()
+        self.portal_index = len(self.portals) - 1
+        item.id = self.last_portal_id + 1
+        self.last_portal_id = item.id
+        print(item.id)
+        return item
 
     bb_min: bpy.props.FloatVectorProperty(name="Bound Min")
     bb_max: bpy.props.FloatVectorProperty(name="Bound Max")
@@ -133,6 +171,8 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     room_index: bpy.props.IntProperty(name="Room Index")
     # Selected portal index
     portal_index: bpy.props.IntProperty(name="Portal Index")
+    # For creating unique portal id
+    last_portal_id: bpy.props.IntProperty(name="")
     # Selected entity index
     entity_index: bpy.props.IntProperty(name="Entity Index")
     # Selected timecycle modifier index
