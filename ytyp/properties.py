@@ -65,12 +65,6 @@ class TimecycleModifierProperties(bpy.types.PropertyGroup):
     end_hour: bpy.props.IntProperty(name="End Hour")
 
 
-def get_asset_from_name(name, context):
-    for obj in context.collection.all_objects:
-        if obj.name == name:
-            return obj
-
-
 class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
     def update_linked_object(self, context):
         linked_obj = self.linked_object
@@ -93,7 +87,7 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
 
 class ArchetypeProperties(bpy.types.PropertyGroup):
     def update_asset_name(self, context):
-        for obj in bpy.context.collection.all_objects:
+        for obj in context.scene.collection.all_objects:
             if obj.name == self.asset_name:
                 self.asset = obj
                 return
