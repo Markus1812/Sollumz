@@ -4,6 +4,7 @@ from ..tools.blenderhelper import find_parent
 from ..sollumz_properties import ArchetypeType, EntityProperties
 from .properties import *
 from mathutils import Vector
+from ..sollumz_ui import FlagsPanel
 
 
 def can_draw_gizmos(context):
@@ -209,24 +210,16 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
             layout.separator()
 
 
-class SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL(bpy.types.Panel):
-    bl_label = "Flags"
+class SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
     bl_idname = "SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_options = {'DEFAULT_CLOSED'}
     bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
 
-    def draw(self, context):
+    def get_flags(self, context):
         selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
         selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        self.layout.prop(selected_archetype.flags, "total")
-        self.layout.separator()
-        grid = self.layout.grid_flow(columns=2)
-        for prop_name in ArchetypeFlags.__annotations__:
-            if prop_name == "total":
-                continue
-            grid.prop(selected_archetype.flags, prop_name)
+        return selected_archetype.flags
 
 
 class RoomGizmo(bpy.types.Gizmo):

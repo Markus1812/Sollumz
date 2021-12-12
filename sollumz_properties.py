@@ -1,5 +1,6 @@
 import bpy
 from enum import Enum
+from .tools.utils import flag_list_to_int, flag_prop_to_list, int_to_bool_list
 
 
 class SollumType(str, Enum):
@@ -289,6 +290,28 @@ def items_from_enums(*enums):
             items.append(
                 (item.value, SOLLUMZ_UI_NAMES[item], ""))
     return items
+
+
+class FlagPropertyGroup:
+    def update_flags_total(self, context):
+        # Ensure string can be converted to int
+        try:
+            value = int((self.total))
+        except ValueError:
+            self.total = "0"
+
+        flags = int_to_bool_list(int(self.total), size=self.size)
+        for index, flag_name in enumerate(self.__annotations__):
+            if index < 32:
+                self[flag_name] = flags[index]
+
+    def update_flag(self, context):
+        flags = flag_prop_to_list(self.__class__, self, size=self.size)
+        flags.pop()
+        self.total = str(flag_list_to_int(flags))
+
+    size = 32
+    total: bpy.props.StringProperty(name="Flags", update=update_flags_total)
 
 
 class EntityProperties:

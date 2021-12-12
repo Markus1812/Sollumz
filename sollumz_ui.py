@@ -375,6 +375,25 @@ class SOLLUMZ_PT_VALUEPARAMS_PANEL(bpy.types.Panel):
         draw_shader_value_params(layout, mat)
 
 
+class FlagsPanel:
+    bl_label = "Flags"
+    bl_options = {'DEFAULT_CLOSED'}
+
+    def get_flags(self, context):
+        raise NotImplementedError(
+            f"Failed to display flags. '{self.__class__.__name__}.get_flags()' method not defined.")
+
+    def draw(self, context):
+        data_block = self.get_flags(context)
+        self.layout.prop(data_block, "total")
+        self.layout.separator()
+        grid = self.layout.grid_flow(columns=2)
+        for prop_name in data_block.__annotations__:
+            if prop_name == "total":
+                continue
+            grid.prop(data_block, prop_name)
+
+
 class SOLLUMZ_MT_sollumz(bpy.types.Menu):
     bl_label = "Sollumz"
     bl_idname = "SOLLUMZ_MT_sollumz"
