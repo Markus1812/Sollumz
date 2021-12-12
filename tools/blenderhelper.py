@@ -144,8 +144,7 @@ def find_parent(obj, parent_name):
     if obj.parent:
         if obj.parent.name == parent_name:
             return obj
-        elif obj.parent.parent:
-            return find_parent(obj.parent.parent, parent_name)
+        return find_parent(obj.parent, parent_name)
     else:
         return None
 
