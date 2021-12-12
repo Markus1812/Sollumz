@@ -46,10 +46,10 @@ class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return len(context.scene.ytyps) > 0
+        return get_selected_ytyp(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_ytyp = get_selected_ytyp(context)
         item = selected_ytyp.archetypes.add()
         index = len(selected_ytyp.archetypes)
         item.name = f"{SOLLUMZ_UI_NAMES[ArchetypeType.BASE]}.{index}"
@@ -68,7 +68,7 @@ class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
         return len(context.scene.ytyps) > 0
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_ytyp = get_selected_ytyp(context)
         selected_ytyp.archetypes.remove(selected_ytyp.archetype_index)
         selected_ytyp.archetype_index = max(
             selected_ytyp.archetype_index - 1, 0)
@@ -83,14 +83,11 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        selected_archetype = get_selected_archetype(context)
+        return selected_archetype and selected_archetype.type == ArchetypeType.MLO
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.new_room()
 
         return True
@@ -103,12 +100,11 @@ class SOLLUMZ_OT_set_bounds_from_selection(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.active_object.mode == "EDIT"
+        return get_selected_room(context) is not None and (context.active_object and context.active_object.mode == "EDIT")
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        selected_room = selected_archetype.rooms[selected_archetype.room_index]
+        selected_archetype = get_selected_archetype(context)
+        selected_room = get_selected_room(context)
         selected_verts = []
         for obj in context.objects_in_mode:
             selected_verts.extend(get_selected_vertices(obj))
@@ -135,14 +131,10 @@ class SOLLUMZ_OT_delete_room(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_room(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.rooms.remove(selected_archetype.room_index)
         selected_archetype.room_index = max(
             selected_archetype.room_index - 1, 0)
@@ -156,14 +148,10 @@ class SOLLUMZ_OT_create_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_archetype(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.new_portal()
 
         return True
@@ -176,11 +164,10 @@ class SOLLUMZ_OT_create_portal_from_selection(SOLLUMZ_OT_base, bpy.types.Operato
 
     @classmethod
     def poll(cls, context):
-        return context.active_object and context.active_object.mode == "EDIT"
+        return get_selected_archetype(context) is not None and (context.active_object and context.active_object.mode == "EDIT")
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_verts = []
 
         for obj in context.objects_in_mode:
@@ -214,14 +201,10 @@ class SOLLUMZ_OT_delete_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_portal(context)
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.portals.remove(selected_archetype.portal_index)
         selected_archetype.portal_index = max(
             selected_archetype.portal_index - 1, 0)
@@ -235,20 +218,19 @@ class SetPortalRoomHelper(SOLLUMZ_OT_base):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_portal(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        if len(selected_archetype.rooms) < 1:
-            self.message("Archetype has no rooms!")
+        selected_room = get_selected_room(context)
+        selected_portal = get_selected_portal(context)
+        if selected_portal is None:
+            self.message("No portal selected!")
             return False
 
-        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
-        selected_room = selected_archetype.rooms[selected_archetype.room_index]
+        if selected_room is None:
+            self.message("No room selected!")
+            return False
+
         if self.room_from:
             selected_portal.room_from_id = selected_room.id
         elif self.room_to:
@@ -275,15 +257,11 @@ class SOLLUMZ_OT_create_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_archetype(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        item = selected_archetype.entities.add()
+        selected_archetype = get_selected_archetype(context)
+        selected_archetype.entities.add()
         return True
 
 
@@ -294,14 +272,10 @@ class SOLLUMZ_OT_add_obj_as_entity(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0 and (context.active_object and context.active_object.sollum_type == SollumType.DRAWABLE):
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_archetype(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         item = selected_archetype.entities.add()
         item.linked_object = context.active_object
         item.archetype_name = context.active_object.name
@@ -315,14 +289,10 @@ class SOLLUMZ_OT_delete_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_entity(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.entities.remove(
             selected_archetype.entity_index)
         selected_archetype.entity_index = max(
@@ -337,16 +307,11 @@ class SOLLUMZ_OT_set_mlo_entity_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_entity(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        selected_entity = selected_archetype.entities[selected_archetype.entity_index]
-        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
+        selected_entity = get_selected_entity(context)
+        selected_portal = get_selected_portal(context)
 
         selected_entity.attached_portal_id = selected_portal.id
         return True
@@ -359,15 +324,10 @@ class SOLLUMZ_OT_clear_mlo_entity_portal(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_entity(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        selected_entity = selected_archetype.entities[selected_archetype.entity_index]
+        selected_entity = get_selected_entity(context)
 
         selected_entity.attached_portal_id = -1
         return True
@@ -380,14 +340,10 @@ class SOLLUMZ_OT_create_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_archetype(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         item = selected_archetype.timecycle_modifiers.add()
         item.name = f"Timecycle Modifier.{len(selected_archetype.timecycle_modifiers)}"
         return True
@@ -400,14 +356,10 @@ class SOLLUMZ_OT_delete_timecycle_modifier(SOLLUMZ_OT_base, bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        if len(context.scene.ytyps) > 0:
-            selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-            return len(selected_ytyp.archetypes) > 0
-        return False
+        return get_selected_archetype(context) is not None
 
     def run(self, context):
-        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(context)
         selected_archetype.timecycle_modifiers.remove(
             selected_archetype.tcm_index)
         selected_archetype.tcm_index = max(selected_archetype.tcm_index - 1, 0)

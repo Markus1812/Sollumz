@@ -3,6 +3,7 @@ from bpy.props import PointerProperty
 
 from ..sollumz_properties import items_from_enums, ArchetypeType, AssetType, EntityProperties, FlagPropertyGroup
 from mathutils import Vector
+from ..tools.utils import get_list_item
 
 
 class RoomFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
@@ -542,6 +543,22 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     tcm_index: bpy.props.IntProperty(
         name="Timecycle Modifier Index")
 
+    @property
+    def selected_room(self):
+        return get_list_item(self.rooms, self.room_index)
+
+    @property
+    def selected_portal(self):
+        return get_list_item(self.portals, self.portal_index)
+
+    @property
+    def selected_entity(self):
+        return get_list_item(self.entities, self.entity_index)
+
+    @property
+    def selected_tcm(self):
+        return get_list_item(self.timecycle_modifiers, self.tcm_index)
+
 
 class CMapTypesProperties(bpy.types.PropertyGroup):
     name: bpy.props.StringProperty(name="Name")
@@ -551,6 +568,53 @@ class CMapTypesProperties(bpy.types.PropertyGroup):
     # Selected archetype index
     archetype_index: bpy.props.IntProperty(
         name="Archetype Index")
+
+    @property
+    def selected_archetype(self):
+        return get_list_item(self.archetypes, self.archetype_index)
+
+
+def get_selected_ytyp(context):
+    scene = context.scene
+    return get_list_item(scene.ytyps, scene.ytyp_index)
+
+
+def get_selected_archetype(context):
+    ytyp = get_selected_ytyp(context)
+    if ytyp:
+        return ytyp.selected_archetype
+
+
+def get_selected_room(context):
+    ytyp = get_selected_ytyp(context)
+    if ytyp:
+        archetype = ytyp.selected_archetype
+        if archetype:
+            return archetype.selected_room
+
+
+def get_selected_portal(context):
+    ytyp = get_selected_ytyp(context)
+    if ytyp:
+        archetype = ytyp.selected_archetype
+        if archetype:
+            return archetype.selected_portal
+
+
+def get_selected_entity(context):
+    ytyp = get_selected_ytyp(context)
+    if ytyp:
+        archetype = ytyp.selected_archetype
+        if archetype:
+            return archetype.selected_entity
+
+
+def get_selected_tcm(context):
+    ytyp = get_selected_ytyp(context)
+    if ytyp:
+        archetype = ytyp.selected_archetype
+        if archetype:
+            return archetype.selected_tcm
 
 
 def register():

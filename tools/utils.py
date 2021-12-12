@@ -4,6 +4,14 @@ from math import inf, sqrt
 from mathutils import Vector, Quaternion, Matrix
 
 
+def get_list_item(list, index):
+    """Get item of list without the risk of an error being thrown"""
+    if 0 <= index < len(list):
+        return list[index]
+    else:
+        return None
+
+
 def flag_list_to_int(flag_list):
     flags = 0
     for i, enabled in enumerate(flag_list):
