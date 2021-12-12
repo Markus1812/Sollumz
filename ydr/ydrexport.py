@@ -3,6 +3,7 @@ import shutil
 import collections
 import bmesh
 import bpy
+from ..resources.fragment import FragmentDrawable
 from ..resources.drawable import *
 from ..resources.shader import ShaderManager
 from ..tools.meshhelper import *
@@ -147,6 +148,9 @@ def get_blended_verts(mesh, vertex_groups, bones=None):
     if(bones != None):
         for i in range(len(bones)):
             bone_index_map[bones[i].name] = i
+    else:
+        for i in range(256):
+            bone_index_map[f"UNKNOWN_BONE.{i}"] = i
 
     blend_weights = []
     blend_indices = []
@@ -180,6 +184,14 @@ def get_blended_verts(mesh, vertex_groups, bones=None):
             if valid_weights > 0 and max_weights_index != -1:
                 bw[max_weights_index] = bw[max_weights_index] + \
                     (255 - total_weights)
+
+            f = ((x, y) for x, y in zip(bw, bi))
+            sorted_f = sorted(f, key=lambda x: x[0])
+            bi = [i[1] for i in sorted_f]
+            bw.sort()
+
+            bw.append(bw.pop(0))
+            bi.append(bi.pop(0))
 
             blend_weights.append(bw)
             blend_indices.append(bi)
@@ -329,6 +341,21 @@ def get_shader_index(mats, mat):
             return i
 
 
+def get_used_indices(mesh):
+    return 128
+
+
+def get_bone_ids(mesh, bones=None):
+    bone_count = 0
+
+    if bones:
+        bone_count = len(bones)
+    else:
+        bone_count = get_used_indices(mesh)
+
+    return [id for id in range(bone_count)]
+
+
 def geometry_from_object(obj, mats, bones=None, export_settings=None):
     geometry = GeometryItem()
 
@@ -339,6 +366,8 @@ def geometry_from_object(obj, mats, bones=None, export_settings=None):
     bbmin, bbmax = get_bound_extents(obj, world=export_settings.use_transforms)
     geometry.bounding_box_min = bbmin
     geometry.bounding_box_max = bbmax
+
+    geometry.bone_ids = get_bone_ids(mesh, bones)
 
     shader_name = obj.active_material.shader_properties.name
     shader = ShaderManager.shaders[shader_name]
@@ -526,10 +555,16 @@ def light_from_object(obj):
 
 
 # REALLY NOT A FAN OF PASSING THIS EXPORT OP TO THIS AND APPENDING TO MESSAGES BUT WHATEVER
-def drawable_from_object(exportop, obj, exportpath, bones=None, export_settings=None):
-    drawable = Drawable()
+def drawable_from_object(exportop, obj, exportpath, bones=None, export_settings=None, is_frag=False, write_shaders=True):
+    drawable = None
+    if is_frag:
+        drawable = FragmentDrawable()
+    else:
+        drawable = Drawable()
 
-    drawable.name = obj.name
+    drawable.name = obj.name if "." not in obj.name else obj.name.split(".")[0]
+    if is_frag:
+        drawable.matrix = obj.matrix_basis
     drawable.bounding_sphere_center = get_bound_center(
         obj, world=export_settings.use_transforms)
     drawable.bounding_sphere_radius = get_obj_radius(
@@ -549,13 +584,16 @@ def drawable_from_object(exportop, obj, exportpath, bones=None, export_settings=
         raise Exception(
             f"No materials on object: {obj.name}, will be skipped.")
 
-    for shader in shaders:
-        drawable.shader_group.shaders.append(shader)
+    if write_shaders:
+        for shader in shaders:
+            drawable.shader_group.shaders.append(shader)
 
-    td, messages = texture_dictionary_from_materials(
-        obj, os.path.dirname(exportpath))
-    drawable.shader_group.texture_dictionary = td
-    exportop.messages += messages
+            td, messages = texture_dictionary_from_materials(
+                obj, os.path.dirname(exportpath))
+            drawable.shader_group.texture_dictionary = td
+            exportop.messages += messages
+    else:
+        drawable.shader_group = None
 
     if bones is None:
         if obj.pose is not None:
