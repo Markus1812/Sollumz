@@ -453,10 +453,10 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                     arch.type = ArchetypeType.BASE
                 elif arch_xml.type == "CTimeArchetypeDef":
                     arch.type = ArchetypeType.TIME
-                    arch.time_flags = arch_xml.time_flags
+                    arch.time_flags.total = str(arch_xml.time_flags)
                 elif arch_xml.type == "CMloArchetypeDef":
                     arch.type = ArchetypeType.MLO
-                    arch.mlo_flags = arch_xml.mlo_flags
+                    arch.mlo_flags.total = str(arch_xml.mlo_flags)
                     for entity_xml in arch_xml.entities:
                         entity = arch.entities.add()
                         entity.position = entity_xml.position
@@ -467,7 +467,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                             if entity_xml.archetype_name == obj.name and obj.name in context.view_layer.objects:
                                 entity.linked_object = obj
                         entity.archetype_name = entity_xml.archetype_name
-                        entity.flags = entity_xml.flags
+                        entity.flags.total = str(entity_xml.flags)
                         entity.guid = entity_xml.guid
                         entity.parent_index = entity_xml.parent_index
                         entity.lod_dist = entity_xml.lod_dist
@@ -486,7 +486,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         room.blend = room_xml.blend
                         room.timecycle = room_xml.timecycle_name
                         room.secondary_timecycle = room_xml.secondary_timecycle_name
-                        room.flags = room_xml.flags
+                        room.flags.total = str(room_xml.flags)
                         room.floor_id = room_xml.floor_id
                         room.exterior_visibility_depth = room_xml.exterior_visibility_depth
                     for portal_xml in arch_xml.portals:
@@ -495,7 +495,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                             setattr(portal, f"corner{index + 1}", corner.value)
                         portal.room_from_id = arch.rooms[portal_xml.room_from].id
                         portal.room_to_id = arch.rooms[portal_xml.room_to].id
-                        portal.flags = portal_xml.flags
+                        portal.flags.total = str(portal_xml.flags)
                         portal.mirror_priority = portal_xml.mirror_priority
                         portal.opacity = portal_xml.opacity
                         portal.audio_occlusion = portal_xml.audio_occlusion
@@ -628,7 +628,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                 elif archetype.type == ArchetypeType.TIME:
                     archetype_xml = self.init_archetype(
                         TimeArchetype(), archetype)
-                    archetype_xml.time_flags = archetype.time_flags
+                    archetype_xml.time_flags = archetype.time_flags.total
                 elif archetype.type == ArchetypeType.MLO:
                     archetype_xml = self.init_archetype(
                         MloArchetype(), archetype)
@@ -647,7 +647,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                             entity_xml.scale_xy = entity.scale_xy
                             entity_xml.scale_z = entity.scale_z
                         entity_xml.archetype_name = entity.archetype_name
-                        entity_xml.flags = entity.flags
+                        entity_xml.flags = entity.flags.total
                         entity_xml.parent_index = entity.parent_index
                         entity_xml.lod_dist = entity.lod_dist
                         entity_xml.child_lod_dist = entity.child_lod_dist
@@ -670,7 +670,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         room_xml.blend = room.blend
                         room_xml.timecycle_name = room.timecycle
                         room_xml.secondary_timecycle_name = room.secondary_timecycle
-                        room_xml.flags = room.flags
+                        room_xml.flags = room.flags.total
                         room_xml.floor_id = room.floor_id
                         room_xml.exterior_visibility_depth = room.exterior_visibility_depth
                         room_xml.portal_count = self.get_portal_count(
@@ -689,7 +689,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
 
                         portal_xml.room_from = portal.room_from_index
                         portal_xml.room_to = portal.room_to_index
-                        portal_xml.flags = portal.flags
+                        portal_xml.flags = portal.flags.total
                         portal_xml.mirror_priority = portal.mirror_priority
                         self.set_portal_attached_objects(
                             portal_xml, portal_index, archetype.entities)

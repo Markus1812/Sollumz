@@ -203,11 +203,44 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
             layout.separator()
             row.label(text="Asset not found in scene",
                       icon="ERROR")
-        if selected_archetype.type == ArchetypeType.TIME:
-            layout.prop(selected_archetype, "time_flags")
-        if selected_archetype.type == ArchetypeType.MLO:
-            layout.prop(selected_archetype, "mlo_flags")
-            layout.separator()
+
+
+class SOLLUMZ_PT_MLO_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
+    bl_idname = "SOLLUMZ_PT_MLO_FLAGS_PANEL"
+    bl_label = "MLO Flags"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
+
+    @classmethod
+    def poll(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        return selected_archetype.type == ArchetypeType.MLO
+
+    def get_flags(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        return selected_archetype.mlo_flags
+
+
+class SOLLUMZ_PT_TIME_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
+    bl_idname = "SOLLUMZ_PT_TIME_FLAGS_PANEL"
+    bl_label = "Time Flags"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_parent_id = SOLLUMZ_PT_ARCHETYPE_PANEL.bl_idname
+
+    @classmethod
+    def poll(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        return selected_archetype.type == ArchetypeType.TIME
+
+    def get_flags(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        return selected_archetype.time_flags
 
 
 class SOLLUMZ_PT_ARCHETYPE_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
@@ -426,9 +459,24 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         if len(selected_archetype.rooms) > 0:
             selected_room = selected_archetype.rooms[selected_archetype.room_index]
             for prop_name in RoomProperties.__annotations__:
+                if prop_name in ["flags", "id"]:
+                    continue
                 layout.prop(selected_room, prop_name)
             layout.separator()
             layout.operator("sollumz.setroomboundsfromselection")
+
+
+class SOLLUMZ_PT_ROOM_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
+    bl_idname = "SOLLUMZ_PT_ROOM_FLAGS_PANEL"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_parent_id = SOLLUMZ_PT_ROOM_PANEL.bl_idname
+
+    def get_flags(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_room = selected_archetype.rooms[selected_archetype.room_index]
+        return selected_room.flags
 
 
 class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
@@ -472,7 +520,7 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
             selected_portal = selected_archetype.portals[selected_archetype.portal_index]
 
             for prop_name in PortalProperties.__annotations__:
-                if prop_name in ["room_from_index", "room_to_index", "name", "room_from_id", "room_to_id"]:
+                if prop_name in ["room_from_index", "room_to_index", "name", "room_from_id", "room_to_id", "flags", "id"]:
                     continue
                 row = layout.row()
                 row.prop(selected_portal, prop_name)
@@ -480,6 +528,19 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
                     row.operator("sollumz.setportalroomfrom")
                 elif prop_name == "room_to_name":
                     row.operator("sollumz.setportalroomto")
+
+
+class SOLLUMZ_PT_PORTAL_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
+    bl_idname = "SOLLUMZ_PT_PORTAL_FLAGS_PANEL"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_parent_id = SOLLUMZ_PT_PORTAL_PANEL.bl_idname
+
+    def get_flags(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_portal = selected_archetype.portals[selected_archetype.portal_index]
+        return selected_portal.flags
 
 
 class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):
@@ -531,7 +592,22 @@ class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):
                     layout.prop(selected_entity, prop_name)
                 layout.separator()
             for prop_name in EntityProperties.__annotations__:
+                if prop_name == "flags":
+                    continue
                 layout.prop(selected_entity, prop_name)
+
+
+class SOLLUMZ_PT_Entity_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
+    bl_idname = "SOLLUMZ_PT_ENTITY_FLAGS_PANEL"
+    bl_space_type = "VIEW_3D"
+    bl_region_type = "UI"
+    bl_parent_id = SOLLUMZ_PT_MLO_ENTITIES_PANEL.bl_idname
+
+    def get_flags(self, context):
+        selected_ytyp = context.scene.ytyps[context.scene.ytyp_index]
+        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_entity = selected_archetype.entities[selected_archetype.entity_index]
+        return selected_entity.flags
 
 
 class SOLLUMZ_PT_TIMECYCLE_MODIFIER_PANEL(bpy.types.Panel):

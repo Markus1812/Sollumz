@@ -311,7 +311,8 @@ class FlagPropertyGroup:
         self.total = str(flag_list_to_int(flags))
 
     size = 32
-    total: bpy.props.StringProperty(name="Flags", update=update_flags_total)
+    total: bpy.props.StringProperty(
+        name="Flags", update=update_flags_total, default="0")
 
 
 class EntityProperties:

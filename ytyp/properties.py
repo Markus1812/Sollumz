@@ -1,7 +1,33 @@
 import bpy
+from bpy.props import PointerProperty
 
 from ..sollumz_properties import items_from_enums, ArchetypeType, AssetType, EntityProperties, FlagPropertyGroup
 from mathutils import Vector
+
+
+class RoomFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
+    size = 10
+
+    flag1: bpy.props.BoolProperty(
+        name="Unknown 1", update=FlagPropertyGroup.update_flag)
+    flag2: bpy.props.BoolProperty(
+        name="Disables wanted level", update=FlagPropertyGroup.update_flag)
+    flag3: bpy.props.BoolProperty(
+        name="Disable exterior shadows", update=FlagPropertyGroup.update_flag)
+    flag4: bpy.props.BoolProperty(
+        name="Unknown 4", update=FlagPropertyGroup.update_flag)
+    flag5: bpy.props.BoolProperty(
+        name="Unknown 5", update=FlagPropertyGroup.update_flag)
+    flag6: bpy.props.BoolProperty(
+        name="Reduces vehicle population", update=FlagPropertyGroup.update_flag)
+    flag7: bpy.props.BoolProperty(
+        name="Reduces ped population", update=FlagPropertyGroup.update_flag)
+    flag8: bpy.props.BoolProperty(
+        name="Unknown 8", update=FlagPropertyGroup.update_flag)
+    flag9: bpy.props.BoolProperty(
+        name="Disable limbo portals", update=FlagPropertyGroup.update_flag)
+    flag10: bpy.props.BoolProperty(
+        name="Unknown 10", update=FlagPropertyGroup.update_flag)
 
 
 class RoomProperties(bpy.types.PropertyGroup):
@@ -13,13 +39,46 @@ class RoomProperties(bpy.types.PropertyGroup):
         name="Timecycle", default="int_GasStation")
     secondary_timecycle: bpy.props.StringProperty(
         name="Secondary Timecycle")
-    flags: bpy.props.IntProperty(name="Flags")
+    flags: bpy.props.PointerProperty(type=RoomFlags, name="Flags")
     floor_id: bpy.props.IntProperty(name="Floor ID")
     exterior_visibility_depth: bpy.props.IntProperty(
         name="Exterior Visibility Depth", default=-1)
 
     # Blender usage only
     id: bpy.props.IntProperty(name="Id")
+
+
+class PortalFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
+    size = 14
+
+    flag1: bpy.props.BoolProperty(
+        name="Disables exterior rendering", update=FlagPropertyGroup.update_flag)
+    flag2: bpy.props.BoolProperty(
+        name="Disables interior rendering", update=FlagPropertyGroup.update_flag)
+    flag3: bpy.props.BoolProperty(
+        name="Mirror", update=FlagPropertyGroup.update_flag)
+    flag4: bpy.props.BoolProperty(
+        name="Extra bloom", update=FlagPropertyGroup.update_flag)
+    flag5: bpy.props.BoolProperty(
+        name="Unknown 5", update=FlagPropertyGroup.update_flag)
+    flag6: bpy.props.BoolProperty(
+        name="Use exterior LOD", update=FlagPropertyGroup.update_flag)
+    flag7: bpy.props.BoolProperty(
+        name="Hide when door closed", update=FlagPropertyGroup.update_flag)
+    flag8: bpy.props.BoolProperty(
+        name="Unknown 8", update=FlagPropertyGroup.update_flag)
+    flag9: bpy.props.BoolProperty(
+        name="Mirror exterior portals", update=FlagPropertyGroup.update_flag)
+    flag10: bpy.props.BoolProperty(
+        name="Unknown 10", update=FlagPropertyGroup.update_flag)
+    flag11: bpy.props.BoolProperty(
+        name="Mirror limbo entities", update=FlagPropertyGroup.update_flag)
+    flag12: bpy.props.BoolProperty(
+        name="Unknown 12", update=FlagPropertyGroup.update_flag)
+    flag13: bpy.props.BoolProperty(
+        name="Unknown 13", update=FlagPropertyGroup.update_flag)
+    flag14: bpy.props.BoolProperty(
+        name="Disable farclipping", update=FlagPropertyGroup.update_flag)
 
 
 class PortalProperties(bpy.types.PropertyGroup):
@@ -77,7 +136,7 @@ class PortalProperties(bpy.types.PropertyGroup):
         name="Room To Index", get=get_room_to_index)
     room_to_name: bpy.props.StringProperty(
         name="Room To", get=get_room_to_name)
-    flags: bpy.props.IntProperty(name="Flags")
+    flags: bpy.props.PointerProperty(type=PortalFlags, name="Flags")
     mirror_priority: bpy.props.IntProperty(name="Mirror Priority")
     opacity: bpy.props.IntProperty(name="Opacity")
     audio_occlusion: bpy.props.IntProperty(name="Audio Occlusion")
@@ -95,6 +154,73 @@ class TimecycleModifierProperties(bpy.types.PropertyGroup):
     range: bpy.props.FloatProperty(name="Range")
     start_hour: bpy.props.IntProperty(name="Start Hour")
     end_hour: bpy.props.IntProperty(name="End Hour")
+
+
+class EntityFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
+    flag1: bpy.props.BoolProperty(
+        name="Allow full rotation", update=FlagPropertyGroup.update_flag)
+    flag2: bpy.props.BoolProperty(
+        name="Unknown 2", update=FlagPropertyGroup.update_flag)
+    flag3: bpy.props.BoolProperty(
+        name="Disable embedded collisions", update=FlagPropertyGroup.update_flag)
+    flag4: bpy.props.BoolProperty(
+        name="Unknown 4", update=FlagPropertyGroup.update_flag)
+    flag5: bpy.props.BoolProperty(
+        name="Unknown 5", update=FlagPropertyGroup.update_flag)
+    flag6: bpy.props.BoolProperty(
+        name="Static entity", update=FlagPropertyGroup.update_flag)
+    flag7: bpy.props.BoolProperty(
+        name="Object isn't dark at night", update=FlagPropertyGroup.update_flag)
+    flag8: bpy.props.BoolProperty(
+        name="Unknown 8", update=FlagPropertyGroup.update_flag)
+    flag9: bpy.props.BoolProperty(
+        name="Unknown 9", update=FlagPropertyGroup.update_flag)
+    flag10: bpy.props.BoolProperty(
+        name="Disable embedded light sources", update=FlagPropertyGroup.update_flag)
+    flag11: bpy.props.BoolProperty(
+        name="Unknown 11", update=FlagPropertyGroup.update_flag)
+    flag12: bpy.props.BoolProperty(
+        name="Unknown 12", update=FlagPropertyGroup.update_flag)
+    flag13: bpy.props.BoolProperty(
+        name="Unknown 13", update=FlagPropertyGroup.update_flag)
+    flag14: bpy.props.BoolProperty(
+        name="Unknown 14", update=FlagPropertyGroup.update_flag)
+    flag15: bpy.props.BoolProperty(
+        name="Unknown 15", update=FlagPropertyGroup.update_flag)
+    flag16: bpy.props.BoolProperty(
+        name="Unknown 16", update=FlagPropertyGroup.update_flag)
+    flag17: bpy.props.BoolProperty(
+        name="Unknown 17", update=FlagPropertyGroup.update_flag)
+    flag18: bpy.props.BoolProperty(
+        name="Unknown 18", update=FlagPropertyGroup.update_flag)
+    flag19: bpy.props.BoolProperty(name="Disable archetype extensions",
+                                   update=FlagPropertyGroup.update_flag)
+    flag20: bpy.props.BoolProperty(
+        name="Unknown 20", update=FlagPropertyGroup.update_flag)
+    flag21: bpy.props.BoolProperty(
+        name="Unknown 21", update=FlagPropertyGroup.update_flag)
+    flag22: bpy.props.BoolProperty(
+        name="Unknown 22", update=FlagPropertyGroup.update_flag)
+    flag23: bpy.props.BoolProperty(
+        name="Disable shadow for entity", update=FlagPropertyGroup.update_flag)
+    flag24: bpy.props.BoolProperty(
+        name="Disable entity, shadow casted", update=FlagPropertyGroup.update_flag)
+    flag25: bpy.props.BoolProperty(
+        name="Object will not cast reflections", update=FlagPropertyGroup.update_flag)
+    flag26: bpy.props.BoolProperty(
+        name="Interior proxy", update=FlagPropertyGroup.update_flag)
+    flag27: bpy.props.BoolProperty(
+        name="Unknown 27", update=FlagPropertyGroup.update_flag)
+    flag28: bpy.props.BoolProperty(
+        name="Reflection proxy", update=FlagPropertyGroup.update_flag)
+    flag29: bpy.props.BoolProperty(
+        name="Unknown 29", update=FlagPropertyGroup.update_flag)
+    flag30: bpy.props.BoolProperty(
+        name="Mirror proxy", update=FlagPropertyGroup.update_flag)
+    flag31: bpy.props.BoolProperty(
+        name="Unknown 31", update=FlagPropertyGroup.update_flag)
+    flag32: bpy.props.BoolProperty(
+        name="Unknown 32", update=FlagPropertyGroup.update_flag)
 
 
 class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
@@ -135,6 +261,7 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
         name="Attached Portal Id", default=-1)
     attached_portal_name: bpy.props.StringProperty(
         name="Attached Portal Name", get=get_portal_name)
+    flags: bpy.props.PointerProperty(type=EntityFlags, name="Flags")
 
     linked_object: bpy.props.PointerProperty(
         type=bpy.types.Object, name="Linked Object", update=update_linked_object)
@@ -207,6 +334,140 @@ class ArchetypeFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
         name="Disable alpha vertex channel", update=FlagPropertyGroup.update_flag)
 
 
+class TimeFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
+    hour1: bpy.props.BoolProperty(
+        name="12:00 AM - 1:00 AM", update=FlagPropertyGroup.update_flag)
+    hour2: bpy.props.BoolProperty(
+        name="1:00 AM - 2:00 AM", update=FlagPropertyGroup.update_flag)
+    hour3: bpy.props.BoolProperty(
+        name="2:00 AM - 3:00 AM", update=FlagPropertyGroup.update_flag)
+    hour4: bpy.props.BoolProperty(
+        name="3:00 AM - 4:00 AM", update=FlagPropertyGroup.update_flag)
+    hour5: bpy.props.BoolProperty(
+        name="4:00 AM - 5:00 AM", update=FlagPropertyGroup.update_flag)
+    hour6: bpy.props.BoolProperty(
+        name="5:00 AM - 6:00 AM", update=FlagPropertyGroup.update_flag)
+    hour7: bpy.props.BoolProperty(
+        name="6:00 AM - 7:00 AM", update=FlagPropertyGroup.update_flag)
+    hour8: bpy.props.BoolProperty(
+        name="7:00 AM - 8:00 AM", update=FlagPropertyGroup.update_flag)
+    hour9: bpy.props.BoolProperty(
+        name="8:00 AM - 9:00 AM", update=FlagPropertyGroup.update_flag)
+    hour10: bpy.props.BoolProperty(
+        name="9:00 AM - 10:00 AM", update=FlagPropertyGroup.update_flag)
+    hour11: bpy.props.BoolProperty(
+        name="10:00 AM - 11:00 AM", update=FlagPropertyGroup.update_flag)
+    hour12: bpy.props.BoolProperty(
+        name="11:00 AM - 12:00 PM", update=FlagPropertyGroup.update_flag)
+    hour13: bpy.props.BoolProperty(
+        name="12:00 PM - 1:00 PM", update=FlagPropertyGroup.update_flag)
+    hour14: bpy.props.BoolProperty(
+        name="1:00 PM - 2:00 PM", update=FlagPropertyGroup.update_flag)
+    hour15: bpy.props.BoolProperty(
+        name="2:00 PM - 3:00 PM", update=FlagPropertyGroup.update_flag)
+    hour16: bpy.props.BoolProperty(
+        name="3:00 PM - 4:00 PM", update=FlagPropertyGroup.update_flag)
+    hour17: bpy.props.BoolProperty(
+        name="4:00 PM - 5:00 PM", update=FlagPropertyGroup.update_flag)
+    hour18: bpy.props.BoolProperty(
+        name="5:00 PM - 6:00 PM", update=FlagPropertyGroup.update_flag)
+    hour19: bpy.props.BoolProperty(
+        name="6:00 PM - 7:00 PM", update=FlagPropertyGroup.update_flag)
+    hour20: bpy.props.BoolProperty(
+        name="7:00 PM - 8:00 PM", update=FlagPropertyGroup.update_flag)
+    hour21: bpy.props.BoolProperty(
+        name="8:00 PM - 9:00 PM", update=FlagPropertyGroup.update_flag)
+    hour22: bpy.props.BoolProperty(
+        name="9:00 PM - 10:00 PM", update=FlagPropertyGroup.update_flag)
+    hour23: bpy.props.BoolProperty(
+        name="10:00 PM - 11:00 PM", update=FlagPropertyGroup.update_flag)
+    hour24: bpy.props.BoolProperty(
+        name="11:00 PM - 12:00 AM", update=FlagPropertyGroup.update_flag)
+    unk1: bpy.props.BoolProperty(
+        name="Unknown 1", update=FlagPropertyGroup.update_flag)
+    unk2: bpy.props.BoolProperty(
+        name="Unknown 2", update=FlagPropertyGroup.update_flag)
+    unk3: bpy.props.BoolProperty(
+        name="Unknown 3", update=FlagPropertyGroup.update_flag)
+    unk4: bpy.props.BoolProperty(
+        name="Unknown 4", update=FlagPropertyGroup.update_flag)
+    unk5: bpy.props.BoolProperty(
+        name="Unknown 5", update=FlagPropertyGroup.update_flag)
+    unk6: bpy.props.BoolProperty(
+        name="Unknown 6", update=FlagPropertyGroup.update_flag)
+    unk7: bpy.props.BoolProperty(
+        name="Unknown 7", update=FlagPropertyGroup.update_flag)
+    unk8: bpy.props.BoolProperty(
+        name="Unknown 8", update=FlagPropertyGroup.update_flag)
+
+
+class UnknownFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
+    flag1: bpy.props.BoolProperty(
+        name="Unknown 1", update=FlagPropertyGroup.update_flag)
+    flag2: bpy.props.BoolProperty(
+        name="Unknown 2", update=FlagPropertyGroup.update_flag)
+    flag3: bpy.props.BoolProperty(
+        name="Unknown 3", update=FlagPropertyGroup.update_flag)
+    flag4: bpy.props.BoolProperty(
+        name="Unknown 4", update=FlagPropertyGroup.update_flag)
+    flag5: bpy.props.BoolProperty(
+        name="Unknown 5", update=FlagPropertyGroup.update_flag)
+    flag6: bpy.props.BoolProperty(
+        name="Unknown 6", update=FlagPropertyGroup.update_flag)
+    flag7: bpy.props.BoolProperty(
+        name="Unknown 7", update=FlagPropertyGroup.update_flag)
+    flag8: bpy.props.BoolProperty(
+        name="Unknown 8", update=FlagPropertyGroup.update_flag)
+    flag9: bpy.props.BoolProperty(
+        name="Unknown 9", update=FlagPropertyGroup.update_flag)
+    flag10: bpy.props.BoolProperty(
+        name="Unknown 10", update=FlagPropertyGroup.update_flag)
+    flag11: bpy.props.BoolProperty(
+        name="Unknown 11", update=FlagPropertyGroup.update_flag)
+    flag12: bpy.props.BoolProperty(
+        name="Unknown 12", update=FlagPropertyGroup.update_flag)
+    flag13: bpy.props.BoolProperty(
+        name="Unknown 13", update=FlagPropertyGroup.update_flag)
+    flag14: bpy.props.BoolProperty(
+        name="Unknown 14", update=FlagPropertyGroup.update_flag)
+    flag15: bpy.props.BoolProperty(
+        name="Unknown 15", update=FlagPropertyGroup.update_flag)
+    flag16: bpy.props.BoolProperty(
+        name="Unknown 16", update=FlagPropertyGroup.update_flag)
+    flag17: bpy.props.BoolProperty(
+        name="Unknown 17", update=FlagPropertyGroup.update_flag)
+    flag18: bpy.props.BoolProperty(
+        name="Unknown 18", update=FlagPropertyGroup.update_flag)
+    flag19: bpy.props.BoolProperty(
+        name="Unknown 19", update=FlagPropertyGroup.update_flag)
+    flag20: bpy.props.BoolProperty(
+        name="Unknown 20", update=FlagPropertyGroup.update_flag)
+    flag21: bpy.props.BoolProperty(
+        name="Unknown 21", update=FlagPropertyGroup.update_flag)
+    flag22: bpy.props.BoolProperty(
+        name="Unknown 22", update=FlagPropertyGroup.update_flag)
+    flag23: bpy.props.BoolProperty(
+        name="Unknown 23", update=FlagPropertyGroup.update_flag)
+    flag24: bpy.props.BoolProperty(
+        name="Unknown 24", update=FlagPropertyGroup.update_flag)
+    flag25: bpy.props.BoolProperty(
+        name="Unknown 25", update=FlagPropertyGroup.update_flag)
+    flag26: bpy.props.BoolProperty(
+        name="Unknown 26", update=FlagPropertyGroup.update_flag)
+    flag27: bpy.props.BoolProperty(
+        name="Unknown 27", update=FlagPropertyGroup.update_flag)
+    flag28: bpy.props.BoolProperty(
+        name="Unknown 28", update=FlagPropertyGroup.update_flag)
+    flag29: bpy.props.BoolProperty(
+        name="Unknown 29", update=FlagPropertyGroup.update_flag)
+    flag30: bpy.props.BoolProperty(
+        name="Unknown 30", update=FlagPropertyGroup.update_flag)
+    flag31: bpy.props.BoolProperty(
+        name="Unknown 31", update=FlagPropertyGroup.update_flag)
+    flag32: bpy.props.BoolProperty(
+        name="Unknown 32", update=FlagPropertyGroup.update_flag)
+
+
 class ArchetypeProperties(bpy.types.PropertyGroup):
     def update_asset_name(self, context):
         for obj in context.scene.collection.all_objects:
@@ -257,9 +518,9 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
     asset_name: bpy.props.StringProperty(
         name="Asset Name", update=update_asset_name)
     # Time archetype
-    time_flags: bpy.props.IntProperty(name="Time Flags")
+    time_flags: bpy.props.PointerProperty(type=TimeFlags, name="Time Flags")
     # Mlo archetype
-    mlo_flags: bpy.props.IntProperty(name="MLO Flags")
+    mlo_flags: bpy.props.PointerProperty(type=UnknownFlags, name="MLO Flags")
     rooms: bpy.props.CollectionProperty(type=RoomProperties, name="Rooms")
     portals: bpy.props.CollectionProperty(
         type=PortalProperties, name="Portals")
