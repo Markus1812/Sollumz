@@ -25,7 +25,7 @@ def int_to_bool_list(num, size=None):
 
 
 def flag_prop_to_list(prop_type, data_block, size=None):
-    size = size or 32
+    size = (size or 32) + 1
     flags = [False] * size
     i = 0
     for flag_name in prop_type.__annotations__:
