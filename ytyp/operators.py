@@ -584,7 +584,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                 elif archetype.type == ArchetypeType.MLO:
                     archetype_xml = self.init_archetype(
                         MloArchetype(), archetype)
-                    archetype_xml.mlo_flags = archetype.mlo_flags
+                    archetype_xml.mlo_flags = archetype.mlo_flags.total
                     for entity in archetype.entities:
                         entity_xml = EntityItem()
                         entity_obj = entity.linked_object
