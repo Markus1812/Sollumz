@@ -258,15 +258,15 @@ class SOLLUMZ_PT_OBJECT_PANEL(bpy.types.Panel):
         elif(obj.sollum_type == SollumType.FRAGMENT):
             self.draw_sollum_type(layout, obj)
             draw_fragment_properties(layout, obj)
-        elif(obj.sollum_type == SollumType.LOD):
+        elif(obj.sollum_type == SollumType.FRAGGROUP):
             self.draw_sollum_type(layout, obj)
-            draw_lod_properties(layout, obj)
-        elif(obj.sollum_type == SollumType.ARCHETYPE):
-            self.draw_sollum_type(layout, obj)
-            draw_archetype_properties(layout, obj)
-        elif(obj.sollum_type == SollumType.CHILD):
+            draw_group_properties(layout, obj)
+        elif(obj.sollum_type == SollumType.FRAGCHILD):
             self.draw_sollum_type(layout, obj)
             draw_child_properties(layout, obj)
+        elif(obj.sollum_type == SollumType.FRAGLOD):
+            self.draw_sollum_type(layout, obj)
+            draw_lod_properties(layout, obj)
         elif obj.sollum_type in BOUND_TYPES:
             self.draw_sollum_type(layout, obj)
             draw_bound_properties(layout, obj)
