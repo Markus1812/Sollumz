@@ -58,6 +58,54 @@ class SOLLUMZ_OT_create_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
         return True
 
 
+class SOLLUMZ_OT_create_archetype_from_selected(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Create archetype from selected"""
+    bl_idname = "sollumz.createarchetypefromselected"
+    bl_label = "Auto-Create From Selected"
+
+    allowed_types = [SollumType.DRAWABLE,
+                     SollumType.BOUND_COMPOSITE, SollumType.FRAGMENT, SollumType.DRAWABLE_DICTIONARY]
+
+    @classmethod
+    def poll(cls, context):
+        return get_selected_ytyp(context) is not None
+
+    def run(self, context):
+        selected_objs = context.selected_objects
+        found = False
+        for obj in selected_objs:
+            archetype_type = context.scene.create_archetype_type
+            if not obj.sollum_type in self.allowed_types:
+                continue
+            if archetype_type == ArchetypeType.MLO:
+                if obj.sollum_type != SollumType.BOUND_COMPOSITE:
+                    self.message(
+                        f"MLO asset '{obj.name}' must be a {SOLLUMZ_UI_NAMES[SollumType.BOUND_COMPOSITE]}!")
+                    continue
+            found = True
+            selected_ytyp = get_selected_ytyp(context)
+            item = selected_ytyp.archetypes.add()
+            index = len(selected_ytyp.archetypes)
+            selected_ytyp.archetype_index = index - 1
+
+            item.name = obj.name
+            item.asset = obj
+
+            if obj.sollum_type == SollumType.DRAWABLE:
+                item.asset_type = AssetType.DRAWABLE
+            elif obj.sollum_type == SollumType.DRAWABLE_DICTIONARY:
+                item.asset_type = AssetType.DRAWABLE_DICTIONARY
+            elif obj.sollum_type == SollumType.BOUND_COMPOSITE:
+                item.asset_type = AssetType.ASSETLESS
+            elif obj.sollum_type == SollumType.FRAGMENT:
+                item.asset_type = AssetType.FRAGMENT
+        if not found:
+            self.message(
+                f"No asset of type '{','.join([SOLLUMZ_UI_NAMES[type] for type in self.allowed_types])}' found!")
+            return False
+        return True
+
+
 class SOLLUMZ_OT_delete_archetype(SOLLUMZ_OT_base, bpy.types.Operator):
     """Delete archetype from selected ytyp"""
     bl_idname = "sollumz.deletearchetype"

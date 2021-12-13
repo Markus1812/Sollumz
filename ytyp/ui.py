@@ -82,6 +82,10 @@ class SOLLUMZ_PT_YTYP_PANEL(bpy.types.Panel):
         row = layout.row()
         row.operator("sollumz.createarchetype")
         row.operator("sollumz.deletearchetype")
+        layout.separator()
+        row = layout.row()
+        row.operator("sollumz.createarchetypefromselected")
+        row.prop(context.scene, "create_archetype_type", text="")
 
 
 class SOLLUMZ_UL_ROOM_LIST(bpy.types.UIList):

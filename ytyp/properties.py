@@ -647,9 +647,13 @@ def register():
     bpy.types.Scene.show_portal_gizmo = bpy.props.BoolProperty(
         name="Show Portal Gizmo")
 
+    bpy.types.Scene.create_archetype_type = bpy.props.EnumProperty(
+        items=items_from_enums(ArchetypeType), name="Type")
+
 
 def unregister():
     del bpy.types.Scene.ytyps
     del bpy.types.Scene.ytyp_index
     del bpy.types.Scene.show_room_gizmo
     del bpy.types.Scene.show_portal_gizmo
+    del bpy.types.Scene.create_archetype_type
