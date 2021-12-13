@@ -234,19 +234,33 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
                 (self.scale_xy, self.scale_xy, self.scale_z))
 
     def get_portal_index(self):
-        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
+        selected_archetype = get_selected_archetype(bpy.context)
         for index, portal in enumerate(selected_archetype.portals):
             if portal.id == self.attached_portal_id:
                 return index
         return -1
 
     def get_portal_name(self):
-        selected_ytyp = bpy.context.scene.ytyps[bpy.context.scene.ytyp_index]
-        selected_archetype = selected_ytyp.archetypes[selected_ytyp.archetype_index]
-        index = self.attached_portal_index
-        if index >= 0 and index < len(selected_archetype.portals):
-            return selected_archetype.portals[self.attached_portal_index].name
+        selected_archetype = get_selected_archetype(bpy.context)
+        portal = get_list_item(selected_archetype.portals,
+                               self.attached_portal_index)
+        if portal:
+            return portal.name
+        return ""
+
+    def get_room_index(self):
+        selected_archetype = get_selected_archetype(bpy.context)
+        for index, room in enumerate(selected_archetype.rooms):
+            if room.id == self.attached_room_id:
+                return index
+        return -1
+
+    def get_room_name(self):
+        selected_archetype = get_selected_archetype(bpy.context)
+        room = get_list_item(selected_archetype.rooms,
+                             self.attached_room_index)
+        if room:
+            return room.name
         return ""
 
     # Transforms unused if no linked object
@@ -262,6 +276,13 @@ class UnlinkedEntityProperties(bpy.types.PropertyGroup, EntityProperties):
         name="Attached Portal Id", default=-1)
     attached_portal_name: bpy.props.StringProperty(
         name="Attached Portal Name", get=get_portal_name)
+
+    attached_room_index: bpy.props.IntProperty(
+        name="Attached Room Index", get=get_room_index)
+    attached_room_id: bpy.props.IntProperty(
+        name="Attached Room Id", default=-1)
+    attached_room_name: bpy.props.StringProperty(
+        name="Attached Room Name", get=get_room_name)
     flags: bpy.props.PointerProperty(type=EntityFlags, name="Flags")
 
     linked_object: bpy.props.PointerProperty(

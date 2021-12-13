@@ -376,6 +376,11 @@ class SOLLUMZ_PT_MLO_ENTITIES_PANEL(bpy.types.Panel):
                      text="Attached Portal")
             row.operator("sollumz.setmloentityportal")
             row.operator("sollumz.clearmloentityportal", text="", icon="X")
+            row = layout.row()
+            row.prop(selected_entity, "attached_room_name",
+                     text="Attached Room")
+            row.operator("sollumz.setmloentityroom")
+            row.operator("sollumz.clearmloentityroom", text="", icon="X")
             layout.separator()
 
             if not selected_entity.linked_object:

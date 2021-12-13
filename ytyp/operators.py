@@ -300,6 +300,39 @@ class SOLLUMZ_OT_delete_mlo_entity(SOLLUMZ_OT_base, bpy.types.Operator):
         return True
 
 
+class SOLLUMZ_OT_set_mlo_entity_room(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Set entity attached room"""
+    bl_idname = "sollumz.setmloentityroom"
+    bl_label = "Set to Selected"
+
+    @classmethod
+    def poll(cls, context):
+        return get_selected_entity(context) is not None
+
+    def run(self, context):
+        selected_entity = get_selected_entity(context)
+        selected_room = get_selected_room(context)
+
+        selected_entity.attached_room_id = selected_room.id
+        return True
+
+
+class SOLLUMZ_OT_clear_mlo_entity_room(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Clear entity attached room"""
+    bl_idname = "sollumz.clearmloentityroom"
+    bl_label = "Clear Room"
+
+    @classmethod
+    def poll(cls, context):
+        return get_selected_entity(context) is not None
+
+    def run(self, context):
+        selected_entity = get_selected_entity(context)
+
+        selected_entity.attached_room_id = -1
+        return True
+
+
 class SOLLUMZ_OT_set_mlo_entity_portal(SOLLUMZ_OT_base, bpy.types.Operator):
     """Set entity attached portal"""
     bl_idname = "sollumz.setmloentityportal"
@@ -409,7 +442,7 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                 elif arch_xml.type == "CMloArchetypeDef":
                     arch.type = ArchetypeType.MLO
                     arch.mlo_flags.total = str(arch_xml.mlo_flags)
-                    for entity_xml in arch_xml.entities:
+                    for entity_index, entity_xml in enumerate(arch_xml.entities):
                         entity = arch.entities.add()
                         entity.position = entity_xml.position
                         entity.rotation = entity_xml.rotation
@@ -441,6 +474,8 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         room.flags.total = str(room_xml.flags)
                         room.floor_id = room_xml.floor_id
                         room.exterior_visibility_depth = room_xml.exterior_visibility_depth
+                        for index in room_xml.attached_objects:
+                            arch.entities[index].attached_room_id = room.id
                     for portal_xml in arch_xml.portals:
                         portal = arch.new_portal()
                         for index, corner in enumerate(portal_xml.corners):
@@ -451,6 +486,8 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                         portal.mirror_priority = portal_xml.mirror_priority
                         portal.opacity = portal_xml.opacity
                         portal.audio_occlusion = portal_xml.audio_occlusion
+                        for index in portal_xml.attached_objects:
+                            arch.entities[index].attached_portal_id = portal.id
                     for tcm_xml in arch_xml.timecycle_modifiers:
                         tcm = arch.timecycle_modifiers.add()
                         tcm.name = tcm_xml.name
@@ -509,19 +546,16 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
         return os.path.join(self.directory, name + ".ytyp.xml")
 
     @staticmethod
-    def set_room_attached_objects(room, entities):
-        bbmin = room.bb_min
-        bbmax = room.bb_max
+    def set_room_attached_objects(room_xml, room_index, entities):
         for index, entity in enumerate(entities):
-            pos = entity.position
-            if pos.x >= bbmin.x and pos.x <= bbmax.x and pos.y >= bbmin.y and pos.z <= bbmax.y and pos.z >= bbmin.z and pos.y <= bbmax.z:
-                room.attached_objects.append(index)
+            if entity.attached_room_index == room_index:
+                room_xml.attached_objects.append(index)
 
     @staticmethod
-    def set_portal_attached_objects(portal, portal_index, entities):
+    def set_portal_attached_objects(portal_xml, portal_index, entities):
         for index, entity in enumerate(entities):
             if entity.attached_portal_index == portal_index:
-                portal.attached_objects.append(index)
+                portal_xml.attached_objects.append(index)
 
     @staticmethod
     def get_portal_count(room, portals):
@@ -614,7 +648,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                         entity_xml.tint_value = entity.tint_value
                         archetype_xml.entities.append(entity_xml)
 
-                    for room in archetype.rooms:
+                    for room_index, room in enumerate(archetype.rooms):
                         room_xml = Room()
                         room_xml.name = room.name
                         room_xml.bb_min = room.bb_min
@@ -629,7 +663,7 @@ class SOLLUMZ_OT_export_ytyp(SOLLUMZ_OT_base, bpy.types.Operator):
                             room, archetype.portals)
 
                         self.set_room_attached_objects(
-                            room_xml, archetype_xml.entities)
+                            room_xml, room_index, archetype.entities)
                         archetype_xml.rooms.append(room_xml)
                     for portal_index, portal in enumerate(archetype.portals):
                         portal_xml = Portal()
