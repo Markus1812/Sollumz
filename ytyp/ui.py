@@ -248,6 +248,8 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         row.operator("sollumz.createroom")
         row.operator("sollumz.deleteroom")
         row = layout.row()
+        row.operator("sollumz.createlimboroom")
+        row = layout.row()
         row.use_property_split = False
         row.prop(context.scene, "show_room_gizmo")
         if not selected_archetype.asset:

@@ -91,6 +91,8 @@ class SOLLUMZ_OT_create_archetype_from_selected(SOLLUMZ_OT_base, bpy.types.Opera
             item.name = obj.name
             item.asset = obj
 
+            item.type = archetype_type
+
             if obj.sollum_type == SollumType.DRAWABLE:
                 item.asset_type = AssetType.DRAWABLE
             elif obj.sollum_type == SollumType.DRAWABLE_DICTIONARY:
@@ -137,6 +139,27 @@ class SOLLUMZ_OT_create_room(SOLLUMZ_OT_base, bpy.types.Operator):
     def run(self, context):
         selected_archetype = get_selected_archetype(context)
         selected_archetype.new_room()
+
+        return True
+
+
+class SOLLUMZ_OT_create_limbo_room(SOLLUMZ_OT_base, bpy.types.Operator):
+    """Automatically create a limbo room for the selected archetype (requires linked object to be specified)."""
+    bl_idname = "sollumz.createlimboroom"
+    bl_label = "Create Limbo Room"
+
+    @classmethod
+    def poll(cls, context):
+        selected_archetype = get_selected_archetype(context)
+        return selected_archetype and selected_archetype.type == ArchetypeType.MLO and selected_archetype.asset is not None
+
+    def run(self, context):
+        selected_archetype = get_selected_archetype(context)
+        room = selected_archetype.new_room()
+        bbmin, bbmax = get_bound_extents(selected_archetype.asset)
+        room.bb_min = bbmin
+        room.bb_max = bbmax
+        room.name = "limbo"
 
         return True
 
