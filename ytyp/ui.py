@@ -169,14 +169,8 @@ class SOLLUMZ_PT_ARCHETYPE_PANEL(bpy.types.Panel):
         layout.prop(selected_archetype, "drawable_dictionary")
         layout.prop(selected_archetype, "physics_dictionary")
         layout.prop(selected_archetype, "asset_type")
-        layout.prop(data=selected_archetype,
-                    property="asset_name", text="Asset Name")
-        if selected_archetype.asset_name and not selected_archetype.asset:
-            row = layout.row()
-            row.alignment = "RIGHT"
-            layout.separator()
-            row.label(text="Asset not found in scene",
-                      icon="ERROR")
+        layout.prop(selected_archetype, "asset_name")
+        layout.prop(selected_archetype, "asset", text="Linked Object")
 
 
 class SOLLUMZ_PT_MLO_FLAGS_PANEL(FlagsPanel, bpy.types.Panel):
@@ -252,6 +246,10 @@ class SOLLUMZ_PT_ROOM_PANEL(bpy.types.Panel):
         row = layout.row()
         row.use_property_split = False
         row.prop(context.scene, "show_room_gizmo")
+        if not selected_archetype.asset:
+            layout.label(
+                text="Gizmo will not appear when no object is linked.", icon="ERROR")
+            layout.separator()
         layout.separator()
 
         selected_room = get_selected_room(context)
@@ -308,6 +306,10 @@ class SOLLUMZ_PT_PORTAL_PANEL(bpy.types.Panel):
         row = layout.row()
         row.use_property_split = False
         row.prop(context.scene, "show_portal_gizmo")
+        if not selected_archetype.asset:
+            layout.label(
+                text="Gizmo will not appear when no object is linked.", icon="ERROR")
+            layout.separator()
 
         layout.separator()
 

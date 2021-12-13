@@ -433,6 +433,10 @@ class SOLLUMZ_OT_import_ytyp(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
                 arch.bs_center = arch_xml.bs_center
                 arch.bs_radius = arch_xml.bs_radius
                 arch.asset_name = arch_xml.asset_name
+                # Find asset in scene
+                for obj in context.scene.collection.all_objects:
+                    if obj.name == arch.asset_name:
+                        arch.asset = obj
 
                 if arch_xml.type == "CBaseArchetypeDef":
                     arch.type = ArchetypeType.BASE

@@ -491,12 +491,11 @@ class UnknownFlags(FlagPropertyGroup, bpy.types.PropertyGroup):
 
 
 class ArchetypeProperties(bpy.types.PropertyGroup):
-    def update_asset_name(self, context):
-        for obj in context.scene.collection.all_objects:
-            if obj.name == self.asset_name:
-                self.asset = obj
-                return
-        self.asset = None
+    def update_asset(self, context):
+        if self.asset:
+            self.asset_name = self.asset.name
+        else:
+            self.asset_name = ""
 
     def set_asset_name(self, value):
         self["asset_name"] = value
@@ -536,9 +535,10 @@ class ArchetypeProperties(bpy.types.PropertyGroup):
         name="Physics Dictionary")
     asset_type: bpy.props.EnumProperty(
         items=items_from_enums(AssetType), name="Asset Type")
-    asset: bpy.props.PointerProperty(name="Asset", type=bpy.types.Object)
+    asset: bpy.props.PointerProperty(
+        name="Asset", type=bpy.types.Object, update=update_asset)
     asset_name: bpy.props.StringProperty(
-        name="Asset Name", update=update_asset_name)
+        name="Asset Name")
     # Time archetype
     time_flags: bpy.props.PointerProperty(type=TimeFlags, name="Time Flags")
     # Mlo archetype
