@@ -200,7 +200,7 @@ def geometry_to_obj(geometry, bones=None, name=None):
             num = max(256, bone_count)
             for i in range(num):
                 bone_name = bones[i].name if bones and i < bone_count \
-                    else "UNKNOWN_BONE." + str(i)
+                    else f"UNKNOWN_BONE.{str(i)}.{geometry.bone_ids[len(geometry.bone_ids) - 1]}"
                 obj.vertex_groups.new(name=bone_name)
 
             for vertex_idx, vertex in enumerate(data):
@@ -486,4 +486,6 @@ def import_ydr(filepath, join_geometries):
     drawable = drawable_to_obj(ydr_xml, filepath, os.path.basename(
         filepath.replace(YDR.file_extension, '')))
     if join_geometries:
-        join_drawable_geometries(drawable)
+        for child in drawable.children:
+            if child.sollum_type == SollumType.DRAWABLE_MODEL:
+                join_drawable_geometries(child)
