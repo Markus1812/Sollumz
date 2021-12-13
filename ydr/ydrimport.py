@@ -195,13 +195,13 @@ def geometry_to_obj(geometry, bones=None, name=None):
 
     # set weights
     if hasattr(data[0], "blendweights"):
-        if (bones != None and len(bones) > 0 and data[0].blendweights is not None and len(data) > 0):
-            num = max(256, len(bones))
+        if data[0].blendweights is not None and len(data) > 0:
+            bone_count = 256 if not bones else len(bones)
+            num = max(256, bone_count)
             for i in range(num):
-                if (i < len(bones)):
-                    obj.vertex_groups.new(name=bones[i].name)
-                else:
-                    obj.vertex_groups.new(name="UNKNOWN_BONE." + str(i))
+                bone_name = bones[i].name if bones and i < bone_count \
+                    else f"UNKNOWN_BONE.{str(i)}.{geometry.bone_ids[len(geometry.bone_ids) - 1]}"
+                obj.vertex_groups.new(name=bone_name)
 
             for vertex_idx, vertex in enumerate(data):
                 for i in range(0, 4):
@@ -348,8 +348,8 @@ def light_to_obj(light, idx):
     light_data.energy = light.intensity
     # divide by 100 because blender specular is clamped 0 - 1 ????
     light_data.specular_factor = light.flashiness / 100
-    #light_data.spot_size = light.cone_outer_angle
-    #light_data.spot_blend = light.cone_inner_angle
+    # light_data.spot_size = light.cone_outer_angle
+    # light_data.spot_blend = light.cone_inner_angle
 
     lobj = bpy.data.objects.new(name=f"light{idx}", object_data=light_data)
     bpy.context.collection.objects.link(lobj)
@@ -486,4 +486,6 @@ def import_ydr(filepath, join_geometries):
     drawable = drawable_to_obj(ydr_xml, filepath, os.path.basename(
         filepath.replace(YDR.file_extension, '')))
     if join_geometries:
-        join_drawable_geometries(drawable)
+        for child in drawable.children:
+            if child.sollum_type == SollumType.DRAWABLE_MODEL:
+                join_drawable_geometries(child)
