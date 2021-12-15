@@ -87,8 +87,8 @@ class BoundProperties(bpy.types.PropertyGroup):
     room_id: bpy.props.IntProperty(name="Room ID", default=0)
     ped_density: bpy.props.IntProperty(name="Ped Density", default=0)
     poly_flags: bpy.props.IntProperty(name="Poly Flags", default=0)
-    inertia: bpy.props.FloatVectorProperty(name="Inertia")
-    volume: bpy.props.FloatProperty(name="Volume", precision=3)
+    inertia: bpy.props.FloatVectorProperty(name="Inertia", default=(1, 1, 1), min=1)
+    volume: bpy.props.FloatProperty(name="Volume", precision=3, default=1, min=1)
     unk_flags: bpy.props.FloatProperty(name="UnkFlags")
     unk_type: bpy.props.FloatProperty(name="UnkType")
 
