@@ -1,6 +1,5 @@
 import bpy
 from enum import Enum
-from .tools.utils import flag_list_to_int, flag_prop_to_list, int_to_bool_list
 
 
 class SollumType(str, Enum):
@@ -116,20 +115,6 @@ class EntityPriorityLevel(str, Enum):
     PRI_OPTIONAL_HIGH = "sollumz_pri_optional_high"
     PRI_OPTIONAL_MEDIUM = "sollumz_pri_optional_medium"
     PRI_OPTIONAL_LOW = "sollumz_pri_optional_low"
-
-
-class ArchetypeType(str, Enum):
-    BASE = "sollumz_archetype_base"
-    TIME = "sollumz_archetype_time"
-    MLO = "sollumz_archetype_mlo"
-
-
-class AssetType(str, Enum):
-    UNITIALIZED = "sollumz_asset_unintialized"
-    FRAGMENT = "sollumz_asset_fragment"
-    DRAWABLE = "sollumz_asset_drawable"
-    DRAWABLE_DICTIONARY = "sollumz_asset_drawable_dictionary"
-    ASSETLESS = "sollumz_asset_assetless"
 
 
 FRAGMENT_TYPES = [
@@ -263,16 +248,6 @@ SOLLUMZ_UI_NAMES = {
     LightType.POINT: 'Point',
     LightType.SPOT: 'Spot',
     LightType.CAPSULE: 'Capsule',
-
-    ArchetypeType.BASE: "Base",
-    ArchetypeType.TIME: "Time",
-    ArchetypeType.MLO: "MLO",
-
-    AssetType.UNITIALIZED: "Uninitialized",
-    AssetType.FRAGMENT: "Fragment",
-    AssetType.DRAWABLE: "Drawable",
-    AssetType.DRAWABLE_DICTIONARY: "Drawable Dictionary",
-    AssetType.ASSETLESS: "Assetless"
 }
 
 # Generate items from provided enums
@@ -290,35 +265,12 @@ def items_from_enums(*enums):
     return items
 
 
-class FlagPropertyGroup:
-    def update_flags_total(self, context):
-        # Ensure string can be converted to int
-        try:
-            value = int((self.total))
-        except ValueError:
-            self.total = "0"
-
-        flags = int_to_bool_list(int(self.total), size=self.size)
-        for index, flag_name in enumerate(self.__annotations__):
-            if index < 32:
-                self[flag_name] = flags[index]
-
-    def update_flag(self, context):
-        flags = flag_prop_to_list(self.__class__, self, size=self.size)
-        flags.pop()
-        self.total = str(flag_list_to_int(flags))
-
-    size = 32
-    total: bpy.props.StringProperty(
-        name="Flags", update=update_flags_total, default="0")
-
-
-class EntityProperties:
-    archetype_name: bpy.props.StringProperty(name="Archetype Name")
+class EntityProperties(bpy.types.PropertyGroup):
+    archetype_name: bpy.props.StringProperty(name="ArchetypeName")
     flags: bpy.props.IntProperty(name="Flags")
-    guid: bpy.props.FloatProperty(name="GUID")
-    parent_index: bpy.props.IntProperty(name="Parent Index")
-    lod_dist: bpy.props.FloatProperty(name="Lod Distance", default=200)
+    guid: bpy.props.FloatProperty(name="Guid")
+    parent_index: bpy.props.IntProperty(name="ParentIndex")
+    lod_dist: bpy.props.FloatProperty(name="Lod Distance")
     child_lod_dist: bpy.props.FloatProperty(name="Child Lod Distance")
     lod_level: bpy.props.EnumProperty(
         items=items_from_enums(EntityLodLevel),
@@ -335,14 +287,98 @@ class EntityProperties:
     )
     # extensions?
     ambient_occlusion_multiplier: bpy.props.FloatProperty(
-        name="Ambient Occlusion Multiplier", default=255)
+        name="Ambient Occlusion Multiplier")
     artificial_ambient_occlusion: bpy.props.FloatProperty(
-        name="Artificial Ambient Occlusion", default=255)
+        name="Artificial Ambient Occlusion")
     tint_value: bpy.props.FloatProperty(name="Tint Value")
 
 
-class ObjectEntityProperties(bpy.types.PropertyGroup, EntityProperties):
-    pass
+class SollumzImportSettings(bpy.types.PropertyGroup):
+    batch_mode: bpy.props.EnumProperty(
+        name="Batch Mode",
+        items=(('SELECTED_FILE', "Selected File", "Import selected file."),
+               ('DIRECTORY', "Directory", "Import every file from active directory the file browser is in."))
+    )
+
+    join_geometries: bpy.props.BoolProperty(
+        name="Join Geometries",
+        description="Joins the drawables geometries into a single mesh.",
+        default=True,
+    )
+
+    split_by_bone: bpy.props.BoolProperty(
+        name="Split by Bone",
+        description="Splits the geometries by bone.",
+        default=True,
+    )
+
+    import_ext_skeleton: bpy.props.BoolProperty(
+        name="Import External Skeleton",
+        description="Imports the first found yft skeleton in the same folder as the selected file.",
+        default=False,
+    )
+
+
+class SollumzExportSettings(bpy.types.PropertyGroup):
+    local: bpy.props.BoolProperty(
+        name="Export drawables local to position")
+    batch_mode: bpy.props.EnumProperty(
+        name="Batch Mode",
+        items=(('OFF', "Off", "Active scene"),
+               ('SCENE', "Scene", "Every scene"),
+               ('COLLECTION', "Collection",
+                "Each collection (data-block ones), does not include content of children collections"),
+               ('SCENE_COLLECTION', "Scene Collections",
+                "Each collection (including master, non-data-block ones) of each scene, "
+                "including content from children collections"),
+               ('ACTIVE_SCENE_COLLECTION', "Active Scene Collections",
+                "Each collection (including master, non-data-block one) of the active scene, "
+                "including content from children collections"),
+               ),
+    )
+    use_batch_own_dir: bpy.props.BoolProperty(
+        name="Batch Own Dir",
+        description="Create a new directory for each exported file",
+        default=False,
+    )
+    sollum_types: bpy.props.EnumProperty(
+        name="Sollum Types",
+        options={'ENUM_FLAG'},
+        items=((SollumType.DRAWABLE.value, "Drawables", ""),
+               (SollumType.DRAWABLE_DICTIONARY.value, "Drawable Dictionarys", ""),
+               (SollumType.BOUND_COMPOSITE.value, "Bounds", ""),
+               (SollumType.FRAGMENT.value, "Fragments", "")),
+        description="Which kind of sollumz objects to export",
+        default={SollumType.DRAWABLE.value,
+                 SollumType.DRAWABLE_DICTIONARY.value,
+                 SollumType.BOUND_COMPOSITE.value,
+                 SollumType.FRAGMENT.value},
+    )
+    use_selection: bpy.props.BoolProperty(
+        name="Selected Objects",
+        description="Export selected and visible objects only",
+        default=False,
+    )
+    use_active_collection: bpy.props.BoolProperty(
+        name="Active Collection",
+        description="Export only objects from the active collection (and its children)",
+        default=False,
+    )
+    use_transforms: bpy.props.BoolProperty(
+        name="Use Parent Transforms",
+        description="Exports objects with the parent empty object's transforms applied to the vertices",
+        default=True
+    )
+    export_with_hi: bpy.props.BoolProperty(
+        name="Export With _hi",
+        description="Exports fragment with _hi file.",
+        default=True
+    )
+    exclude_skeleton: bpy.props.BoolProperty(
+        name="Skeleton",
+        description="Exclude skeleton from export. Usually done with mp ped components.",
+        default=False
+    )
 
 
 def hide_obj_and_children(obj, value):
@@ -442,7 +478,7 @@ def register():
     bpy.types.ShaderNode.is_sollumz = bpy.props.BoolProperty(default=False)
 
     bpy.types.Object.entity_properties = bpy.props.PointerProperty(
-        type=ObjectEntityProperties)
+        type=EntityProperties)
 
     bpy.types.Scene.hide_collision = bpy.props.BoolProperty(
         name="Hide Collision", get=get_hide_collisions, set=set_hide_collisions)
