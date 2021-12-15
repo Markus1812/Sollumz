@@ -46,7 +46,7 @@ def get_shaders_from_blender(obj):
                 param.name = node.name
                 param.type = "Texture"
                 if node.image == None:
-                    param.texture_name = "givemechecker"
+                    param.texture_name = ""
                 else:
                     param.texture_name = node.image.name.split('.')[0]
                 shader.parameters.append(param)
@@ -168,7 +168,8 @@ def get_blended_verts(mesh, vertex_groups, bones=None):
                     continue
 
                 vertex_group = vertex_groups[element.group]
-                bone_index = bone_index_map.get(vertex_group.name, -1)
+                vg_name = vertex_group.name if bones else vertex_group.name[:-4]
+                bone_index = bone_index_map.get(vg_name, -1)
                 # 1/255 = 0.0039 the minimal weight for one vertex group
                 weight = round(element.weight * 255)
                 if (vertex_group.lock_weight == False and bone_index != -1 and weight > 0 and valid_weights < 4):
@@ -370,8 +371,12 @@ def geometry_from_object(obj, mats, bones=None, export_settings=None):
     shader_name = obj.active_material.shader_properties.name
     shader = ShaderManager.shaders[shader_name]
 
+    is_skinned = False
+    if len(obj.vertex_groups) > 0:
+        is_skinned = True
+        
     layout = shader.get_layout_from_semantic(
-        get_semantic_from_object(shader, mesh))
+        get_semantic_from_object(shader, mesh), is_skinned=is_skinned)
 
     geometry.vertex_buffer.layout = layout.value
     vertex_buffer, index_buffer = get_mesh_buffers(
@@ -630,9 +635,11 @@ def drawable_from_object(exportop, obj, exportpath, bones=None, export_settings=
                 drawable.drawable_models_vlow.append(drawable_model)
         if child.sollum_type in BOUND_TYPES:
             if child.sollum_type == SollumType.BOUND_COMPOSITE:
-                drawable.bound = composite_from_object(child, export_settings)
+                drawable.bounds.append(
+                    composite_from_object(child, export_settings))
             else:
-                drawable.bound = bound_from_object(child, export_settings)
+                drawable.bounds.append(
+                    bound_from_object(child, export_settings))
         elif child.type == 'LIGHT' and child.data.light_properties.type != LightType.NONE:
             drawable.lights.append(light_from_object(child))
 

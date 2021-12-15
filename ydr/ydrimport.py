@@ -49,6 +49,9 @@ def shadergroup_to_materials(shadergroup, filepath):
                                         t_path, check_existing=True)
                                     n.image = img
                         if not n.image:
+                            # for texture shader parameters with no name
+                            if not param.texture_name:
+                                continue
                             # Check for existing texture
                             existing_texture = None
                             for image in bpy.data.images:
@@ -434,14 +437,17 @@ def drawable_to_obj(drawable, filepath, name, bones_override=None, materials=Non
     if bones_override is not None:
         bones = bones_override
 
-    if drawable.bound and drawable.bound.type == SollumType.BOUND_COMPOSITE:
-        bobj = composite_to_obj(
-            drawable.bound, SOLLUMZ_UI_NAMES[SollumType.BOUND_COMPOSITE], True)
-        bobj.parent = obj
-    elif drawable.bound:
-        bobj = bound_to_obj(drawable.bound)
-        if bobj:
-            bobj.parent = obj
+    if drawable.bounds:
+        for bound in drawable.bounds:
+            bobj = None
+            if bound.type == "Composite":
+                bobj = composite_to_obj(
+                    bound, SOLLUMZ_UI_NAMES[SollumType.BOUND_COMPOSITE], True)
+                bobj.parent = obj
+            else:
+                bobj = bound_to_obj(bound)
+                if bobj:
+                    bobj.parent = obj
 
     for model in drawable.drawable_models_high:
         dobj = drawable_model_to_obj(
@@ -481,11 +487,11 @@ def drawable_to_obj(drawable, filepath, name, bones_override=None, materials=Non
     return obj
 
 
-def import_ydr(filepath, join_geometries):
+def import_ydr(filepath, import_settings):
     ydr_xml = YDR.from_xml_file(filepath)
     drawable = drawable_to_obj(ydr_xml, filepath, os.path.basename(
         filepath.replace(YDR.file_extension, '')))
-    if join_geometries:
+    if import_settings.join_geometries:
         for child in drawable.children:
             if child.sollum_type == SollumType.DRAWABLE_MODEL:
                 join_drawable_geometries(child)
