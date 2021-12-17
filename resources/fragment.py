@@ -1,7 +1,7 @@
 from abc import ABC as AbstractClass
 from xml.etree import ElementTree as ET
 from .codewalker_xml import *
-from .drawable import Drawable
+from .drawable import Drawable, LightsProperty
 from .bound import BoundsComposite
 
 
@@ -21,8 +21,8 @@ class YFT:
 class BoneTransformItem(MatrixProperty):
     tag_name = "Item"
 
-    def __init__(self, tag_name: str, value=None):
-        super().__init__(tag_name, value or Matrix())
+    def __init__(self, tag_name: str, value=None, size=3):
+        super().__init__(tag_name, value or Matrix(), size)
 
 
 class BoneTransformsListProperty(ListProperty):
@@ -223,4 +223,5 @@ class Fragment(ElementTree, AbstractClass):
         self.drawable = FragmentDrawable()
         self.bones_transforms = BoneTransformsListProperty()
         self.physics = PhysicsProperty()
+        self.lights = LightsProperty()
         self.vehicle_glass_windows = VehicleGlassWindows()

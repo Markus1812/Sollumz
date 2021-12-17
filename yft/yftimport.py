@@ -2,7 +2,7 @@ import bpy
 from mathutils import Matrix, Vector
 from ..tools.drawablehelper import get_drawable_geometries, join_drawable_geometries
 from ..resources.fragment import YFT
-from ..ydr.ydrimport import drawable_to_obj, shadergroup_to_materials
+from ..ydr.ydrimport import drawable_to_obj, shadergroup_to_materials, light_to_obj
 from ..ybn.ybnimport import composite_to_obj
 from ..sollumz_properties import SOLLUMZ_UI_NAMES, SollumType
 from ..tools.blenderhelper import split_object_by_vertex_groups
@@ -118,9 +118,10 @@ def create_lod_obj(lod, filepath, materials):
             bound.name = gobj.name.replace("_group", "_col")
 
         if len(child.drawable.drawable_models_high) > 0:
-            a = drawable_to_obj(
+            cdobj = drawable_to_obj(
                 child.drawable, filepath, f"Drawable{idx}", None, materials)
-            a.parent = cobj
+            cdobj.matrix_basis = child.drawable.matrix
+            cdobj.parent = cobj
 
         if lod.transforms:
             transform = lod.transforms[idx].value
@@ -156,8 +157,10 @@ def fragment_to_obj(fragment, filepath):
     if fragment.drawable:
         materials = shadergroup_to_materials(
             fragment.drawable.shader_group, filepath)
+        fragment.drawable.lights = fragment.lights
         dobj = drawable_to_obj(
             fragment.drawable, filepath, fragment.drawable.name, None, materials)
+        dobj.matrix_basis = fragment.drawable.matrix
         dobj.parent = fobj
 
     if len(fragment.physics.lod1.groups) > 0:
@@ -173,28 +176,19 @@ def fragment_to_obj(fragment, filepath):
         lobj.lod_properties.type = 3
         lobj.parent = fobj
 
-    allbmodels = []
-    for child in dobj.children:
-        allbmodels.append(child)
-    allfmodels = fragment.drawable.all_models
-
-    pose = fragment.bones_transforms
-    if pose:
+    transforms = fragment.bones_transforms
+    if transforms:
         modeltransforms = []
-        pbc = len(pose)
-        for i in range(pbc):
-            modeltransforms.append(pose[i].value)
+        for i in range(len(transforms)):
+            modeltransforms.append(transforms[i].value)
 
-        for i in range(len(allfmodels)):
-            model = allfmodels[i]
-            bmodel = allbmodels[i]
+        for child in dobj.children:
+            boneidx = child.drawable_model_properties.bone_index
 
-            boneidx = model.bone_index
             m = modeltransforms[boneidx] if boneidx < len(
                 modeltransforms) else Matrix()
 
-            if not model.has_skin:
-                bmodel.matrix_basis = m
+            child.matrix_basis = m
 
     return fobj
 
@@ -217,6 +211,12 @@ def import_yft(filepath, import_settings):
 
         for child in dobj.children:
             if child.sollum_type == SollumType.DRAWABLE_MODEL:
-                join_drawable_geometries(child)
-                geo = get_drawable_geometries(child)[0]
-                split_object_by_vertex_groups(geo)
+                if child.children[0].vertex_groups:
+                    join_drawable_geometries(child)
+                    geo = get_drawable_geometries(child)[0]
+                    split_object_by_vertex_groups(geo)
+                else:
+                    # drawable is still linked to its bone index
+                    bone = dobj.data.bones[child.drawable_model_properties.bone_index]
+                    for geo in get_drawable_geometries(child):
+                        geo.name = bone.name

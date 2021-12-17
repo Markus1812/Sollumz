@@ -90,12 +90,13 @@ def fragment_from_object(exportop, obj, exportpath, export_settings=None):
     fragment.drawable = drawable_from_object(
         exportop, dobj, exportpath, None, materials, export_settings, True)
 
-    #geo = get_drawable_geometries(dobj)[0]
-    #geos = split_object(geo, geo.parent)
-    # for idx, bone in enumerate(fragment.drawable.skeleton.bones):
-    for idx, bone in enumerate(dobj.data.bones):
+    for idx in range(len(dobj.data.bones)):
+        m = Matrix()
+        for model in dobj.children:
+            if model.drawable_model_properties.bone_index == idx:
+                m = model.matrix_basis
         fragment.bones_transforms.append(
-            BoneTransformItem("Item", Matrix().transposed()))
+            BoneTransformItem("Item", m))
 
     lods = []
     for child in fobj.children:
@@ -144,7 +145,8 @@ def fragment_from_object(exportop, obj, exportpath, export_settings=None):
             lod.lod_properties.archetype_inertia_tensor)
         flod.archetype.inertia_tensor = arch_it
         flod.archetype.inertia_tensor_inv = divide_vector_inv(arch_it)
-        flod.archetype.bounds = composite_from_objects(bobjs, export_settings)
+        flod.archetype.bounds = composite_from_objects(
+            bobjs, export_settings, True)
 
         gidx = 0
         for gobj in gobjs:
@@ -181,10 +183,9 @@ def fragment_from_object(exportop, obj, exportpath, export_settings=None):
             flod.groups.append(group)
             gidx += 1
 
-        bidx = 0
         for cobj in cobjs:
             child = ChildrenItem()
-            gobj = gobjs[bidx]
+            gobj = cobj.parent
             child.group_index = gobjs.index(gobj)
             child.bone_tag = cobj.child_properties.bone_tag
             child.pristine_mass = cobj.child_properties.pristine_mass
@@ -205,7 +206,6 @@ def fragment_from_object(exportop, obj, exportpath, export_settings=None):
                 child.drawable.skeleton = None
                 child.drawable.joints = None
 
-            bidx += 1
             transform = cobj.matrix_basis.transposed()
             a = transform[3][0] - pos_offset.x
             b = transform[3][1] - pos_offset.y
