@@ -42,13 +42,14 @@ def get_terrain_texture_brush(idx):
     return brush
 
 
-def material_from_image(img, name="Material"):
+def material_from_image(img, name="Material", nodename="Image"):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     node_tree = mat.node_tree
     links = node_tree.links
     bsdf = node_tree.nodes["Principled BSDF"]
     imgnode = node_tree.nodes.new("ShaderNodeTexImage")
+    imgnode.name = nodename
     links.new(imgnode.outputs[0], bsdf.inputs[0])
     imgnode.image = img
     return mat
@@ -184,6 +185,12 @@ def find_parent(obj, parent_name):
         return None
 
 
+def find_child_by_type(parent, sollum_type):
+    for obj in bpy.data.objects:
+        if obj.parent == parent and obj.sollum_type == sollum_type:
+            return obj
+
+
 def build_tag_bone_map(armature):
     if (armature == None):
         return None
@@ -196,3 +203,37 @@ def build_tag_bone_map(armature):
         tag_bone_map[pose_bone.bone.bone_properties.tag] = pose_bone.name
 
     return tag_bone_map
+
+
+def build_name_bone_map(armature):
+    if (armature == None):
+        return None
+
+    if (armature.pose == None):
+        return None
+
+    tag_bone_map = {}
+    for pose_bone in armature.pose.bones:
+        tag_bone_map[pose_bone.name] = pose_bone.bone.bone_properties.tag
+
+    return tag_bone_map
+
+
+def build_bone_map(armature):
+    if (armature == None):
+        return None
+
+    if (armature.pose == None):
+        return None
+
+    tag_bone_map = {}
+    for pose_bone in armature.pose.bones:
+        tag_bone_map[pose_bone.bone.bone_properties.tag] = pose_bone
+
+    return tag_bone_map
+
+
+def get_armature_obj(armature):
+    for obj in bpy.data.objects:
+        if isinstance(obj.data, bpy.types.Armature) and obj.data == armature:
+            return obj
