@@ -4,7 +4,6 @@ import pathlib
 from abc import abstractmethod
 import bpy
 from bpy_extras.io_utils import ImportHelper, ExportHelper
-from enum import Enum
 from .sollumz_helper import *
 from .sollumz_properties import SollumType, SOLLUMZ_UI_NAMES, BOUND_TYPES, SollumzExportSettings, SollumzImportSettings, TimeFlags
 from .resources.drawable import YDR, YDD
@@ -32,7 +31,7 @@ from .tools.ytyphelper import ytyp_from_objects
 
 
 class SOLLUMZ_OT_import(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
-    """Imports xml files exported by codewalker."""
+    """Imports xml files exported by codewalker"""
     bl_idname = "sollumz.import"
     bl_label = "Import Codewalker XML"
     bl_action = "import"
@@ -103,7 +102,7 @@ class SOLLUMZ_OT_import(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
 
 
 class SOLLUMZ_OT_export(SOLLUMZ_OT_base, bpy.types.Operator):
-    """Exports codewalker xml files."""
+    """Exports codewalker xml files"""
     bl_idname = "sollumz.export"
     bl_label = "Export Codewalker XML"
     bl_action = "export"
@@ -298,7 +297,7 @@ class SOLLUMZ_OT_export(SOLLUMZ_OT_base, bpy.types.Operator):
 
 
 class SOLLUMZ_OT_import_ymap(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
-    """Imports .ymap.xml file exported from codewalker."""
+    """Imports .ymap.xml file exported from codewalker"""
     bl_idname = "sollumz.importymap"
     bl_label = "Import ymap.xml"
     filename_ext = ".ymap.xml"
@@ -361,7 +360,7 @@ class SOLLUMZ_OT_import_ymap(SOLLUMZ_OT_base, bpy.types.Operator, ImportHelper):
 
 
 class SOLLUMZ_OT_export_ymap(SOLLUMZ_OT_base, bpy.types.Operator, ExportHelper):
-    """Exports .ymap.xml file exported from codewalker."""
+    """Exports .ymap.xml file exported from codewalker"""
     bl_idname = "sollumz.exportymap"
     bl_label = "Export ymap.xml"
     bl_action = "Export a YMAP"
@@ -625,7 +624,17 @@ class SOLLUMZ_OT_debug_hierarchy(SOLLUMZ_OT_base, bpy.types.Operator):
                         for geom in model.children:
                             if geom.type == "MESH":
                                 geom.sollum_type = SollumType.DRAWABLE_GEOMETRY
-            if sollum_type == SollumType.BOUND_COMPOSITE:
+            elif sollum_type == SollumType.DRAWABLE_DICTIONARY:
+                for draw in obj.children:
+                    if draw.type == "EMPTY":
+                        draw.sollum_type = SollumType.DRAWABLE
+                        for model in draw.children:
+                            if model.type == "EMPTY":
+                                model.sollum_type = SollumType.DRAWABLE_MODEL
+                                for geom in model.children:
+                                    if geom.type == "MESH":
+                                        geom.sollum_type = SollumType.DRAWABLE_GEOMETRY
+            elif sollum_type == SollumType.BOUND_COMPOSITE:
                 for bound in obj.children:
                     if bound.type == "EMPTY":
                         if "CLOTH" in bound.name:
