@@ -234,23 +234,8 @@ def sort_points(pts):
 
 def is_coplanar(points):
     """Check if 4 points lie on the same plane"""
-    leg1 = points[1] - points[0]
-    leg2 = points[2] - points[0]
-    leg3 = points[3] - points[0]
+    return True
 
-    vertNorm1 = leg1.cross(leg2)
-    vertNorm2 = leg1.cross(leg3)
-
-    coplanarity = vertNorm1.dot(vertNorm2)
-
-    #If the dot product result is 1 or -1 normals are colinear
-    #so the points are all coplanar
-    if coplanarity == 1.0 or coplanarity == -1.0:
-        #They are coplanar
-        return True
-
-    #They are NOT coplanar
-    return False
 
 def list_index_exists(ls, i):
     return (0 <= i < len(ls)) or (-len(ls) <= i < 0)
